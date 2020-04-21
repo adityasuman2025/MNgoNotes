@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, FlatList, AsyncStorage, Image } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, FlatList, AsyncStorage, Image, ActivityIndicator } from 'react-native';
 import axios from 'axios';
 
 import {Actions} from 'react-native-router-flux';
@@ -7,82 +7,84 @@ import {Actions} from 'react-native-router-flux';
 import { globalStyles } from '../styles/globalStyles';
 import Header from '../components/header';
 import CreateNotesArea from '../components/createNotesArea';
-
+import { toast } from '../components/toast';
 export default function Home({toCarry}) 
 {
   const logged_user_id = toCarry.logged_user_id;
   // console.log("in Home page: " + logged_user_id);
 
   const [notes, setNotes] = useState([]);
-  const [error, setError] = useState(""); 
+  const [showIndicator, setShowIndicator] = useState(true);
 
 //checking if someone is logged or not
 //before loading that user's data
-  if(logged_user_id == "")
-  {
-    setError("you are not logged in");
-  }
-  else
-  {
-    var user_id = logged_user_id;       
-    var user_notes_of = "user_notes_of_" + user_id;
-
-  //looking for user notes data in cookies  
-    AsyncStorage.getItem(user_notes_of).then((val) =>
+    if(logged_user_id == "")
     {
-      if(val != null) //if some data exist in cookies then loading in flatlist
-      {           
-        var data = JSON.parse(val);          
-        setNotes(data);
-        // console.log("cokkie found");
-      }
-      else
-      {
-        // console.log("cokkie not found");
-      //posting request to API for getting user notes data from server and storing it as cookies
-        axios.post('http://mngo.in/notes_api/getUserNotes.php', 
-        {
-          user_id: user_id
-        })
-        .then(function(response) 
-        {
-          try
-          {
-            var data = response.data;
-            var dataString = JSON.stringify((response.data));
-            // console.log(dataString);
+      toast("you are not logged in");
+    }
+    else
+    {
+      var user_id = logged_user_id;       
+      var user_notes_of = "user_notes_of_" + user_id;
 
-            if(dataString == 0)
-            {
-              setError("failed to fetch data");
-            }
-            else if(dataString == -1)
-            {
-              setError("something went wrong");
-            }
-            else //some data is there
-            {
-              AsyncStorage.setItem(user_notes_of, dataString);
-              Actions.refresh();                
-            }
-          }
-          catch
-          {
-            setError("failed to get your updated data");
-          }          
-        })
-        .catch(error => 
+    //looking for user notes data in cookies  
+      AsyncStorage.getItem(user_notes_of).then((val) =>
+      {
+        if(val != null) //if some data exist in cookies then loading in flatlist
+        {           
+          var data = JSON.parse(val);          
+          setNotes(data);
+          setShowIndicator(false); //hiding loading animation
+        }
+        else
         {
-          setError("please check your internet connection");
-        });      
-      }  
-    });
-  }
+        //posting request to API for getting user notes data from server and storing it as cookies
+          axios.post('http://mngo.in/notes_api/getUserNotes.php', 
+          {
+            user_id: user_id
+          })
+          .then(function(response) 
+          {
+            try
+            {
+              var data = response.data;
+              var dataString = JSON.stringify((response.data));
+              // console.log(dataString);
+
+              if(dataString == 0)
+              {
+                toast("failed to fetch data");
+              }
+              else if(dataString == -1)
+              {
+                toast("something went wrong");
+              }
+              else //some data is there
+              {
+                setShowIndicator(false);//hiding loading animation
+
+                AsyncStorage.setItem(user_notes_of, dataString);
+                Actions.refresh();                
+              }
+            }
+            catch
+            {
+              toast("failed to get your updated data");
+            }          
+          })
+          .catch(error => 
+          {
+            toast("please check your internet connection");
+          });      
+        }  
+      });
+    }
 
 //on clicking on any notes
   const onClickingOnAnyNotes = (item) =>
   {
-    setError("please wait...");
+    // toast("please wait...");
+    setShowIndicator(true);
 
     var toCarry = {};
     toCarry['logged_user_id'] = logged_user_id;
@@ -102,21 +104,21 @@ export default function Home({toCarry})
 
       if(dataString == 0)
       {
-        setError("failed to fetch data");
+        toast("failed to fetch data");
       }
       else if(dataString == -1)
       {
-        setError("something went wrong");
+        toast("something went wrong");
       }
       else //some data is there
       {
         try
         {
-          setError("");
-         
         //making cookie of that notes_id list
           var user_notes_list_data = logged_user_id + "_list_data_for_notes_id_" + item.notes_id;
           AsyncStorage.setItem(user_notes_list_data, dataString);
+
+          setShowIndicator(false);
 
         //redirecting to notes view page  
           toCarry['notesOldList'] = dataString;
@@ -124,7 +126,7 @@ export default function Home({toCarry})
         }
         catch(error)
         {
-          setError("failed to get your updated data");
+          toast("failed to get your updated data");
         } 
       }
     })
@@ -135,15 +137,15 @@ export default function Home({toCarry})
       AsyncStorage.getItem(user_notes_list_data).then((val) =>
       {
         if(val != null) //if some data exist in cookies then loading in flatlist
-        {           
-          setError("");
-          
+        {
+          setShowIndicator(false);
+
           toCarry['notesOldList'] = val;
           Actions.ViewNotesPage({ toCarry: toCarry });   
         }
         else
         {
-           setError("please check your internet connection");
+          toast("please check your internet connection");
         }
       });  
     }); 
@@ -152,11 +154,16 @@ export default function Home({toCarry})
 //rendering
   return (
     <View style={globalStyles.container}>
-      <Header toCarry={ {title: "MNgo Notes"} } />     
+      <Header toCarry={ {title: "MNgo Notes"} } />
+      {
+        showIndicator ?
+          <ActivityIndicator size="large" color="#d8d8d8" />
+          : null
+      }
       <FlatList 
         style = {styles.list}
         data={notes}
-        keyExtractor ={(item) => item.notes_id }
+        keyExtractor ={(item) => item.notes_id }       
         renderItem = {({item}) => (
           <TouchableOpacity style={styles.box} onPress={() => onClickingOnAnyNotes(item)}>
             <Image 
@@ -171,7 +178,6 @@ export default function Home({toCarry})
         )}
       />
 
-      <Text style={globalStyles.errorText} >{error}</Text>
       <CreateNotesArea toCarry = {{logged_user_id: logged_user_id}} />
     </View>
   );
@@ -186,13 +192,16 @@ const styles = StyleSheet.create({
 
   box:
   {
-    backgroundColor: '#1c313a',
-    borderColor: '#3d4e56',
-    borderWidth: 1,
+    // backgroundColor: '#1c313a',
+    // borderColor: '#3d4e56',
+    // borderWidth: 1,
+    
+    borderBottomColor: '#3d4e56',
+    borderBottomWidth: 1,
+
     padding: 15,
     flexDirection: 'row',
-    margin: 5,
-    borderRadius: 5,
+    marginHorizontal: 5,
     justifyContent: 'flex-start',
     alignItems: 'center',
   },
