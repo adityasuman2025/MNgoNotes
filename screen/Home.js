@@ -8,6 +8,7 @@ import { globalStyles } from '../styles/globalStyles';
 import Header from '../components/header';
 import CreateNotesArea from '../components/createNotesArea';
 import { toast } from '../components/toast';
+
 export default function Home({toCarry}) 
 {
   const logged_user_id = toCarry.logged_user_id;
@@ -31,10 +32,12 @@ export default function Home({toCarry})
       AsyncStorage.getItem(user_notes_of).then((val) =>
       {
         if(val != null) //if some data exist in cookies then loading in flatlist
-        {           
+        {
           var data = JSON.parse(val);          
           setNotes(data);
-          setShowIndicator(false); //hiding loading animation
+          
+          if(showIndicator == true)
+            setShowIndicator(false); //hiding loading animation
         }
         else
         {
@@ -61,7 +64,8 @@ export default function Home({toCarry})
               }
               else //some data is there
               {
-                setShowIndicator(false);//hiding loading animation
+                if(showIndicator == true)
+                  setShowIndicator(false);//hiding loading animation
 
                 AsyncStorage.setItem(user_notes_of, dataString);
                 Actions.refresh();                
@@ -99,6 +103,8 @@ export default function Home({toCarry})
     })
     .then(function(response) 
     {
+      setShowIndicator(false);
+
       var data = response.data;
       var dataString = JSON.stringify((response.data));
 
@@ -118,8 +124,6 @@ export default function Home({toCarry})
           var user_notes_list_data = logged_user_id + "_list_data_for_notes_id_" + item.notes_id;
           AsyncStorage.setItem(user_notes_list_data, dataString);
 
-          setShowIndicator(false);
-
         //redirecting to notes view page  
           toCarry['notesOldList'] = dataString;
           Actions.ViewNotesPage({ toCarry: toCarry });
@@ -136,10 +140,10 @@ export default function Home({toCarry})
       var user_notes_list_data = logged_user_id + "_list_data_for_notes_id_" + item.notes_id;
       AsyncStorage.getItem(user_notes_list_data).then((val) =>
       {
+        setShowIndicator(false);
+        
         if(val != null) //if some data exist in cookies then loading in flatlist
         {
-          setShowIndicator(false);
-
           toCarry['notesOldList'] = val;
           Actions.ViewNotesPage({ toCarry: toCarry });   
         }

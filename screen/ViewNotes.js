@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, Image, TouchableOpacity, ScrollView, AsyncStorage, Alert, TextInput } from 'react-native';
+import { StyleSheet, Text, View, Image, TouchableOpacity, ScrollView, AsyncStorage, Alert, TextInput, ActivityIndicator } from 'react-native';
 import axios from 'axios';
 // import { Form, TextInput } from 'react-native-autofocus';
 import {Actions} from 'react-native-router-flux';
 
 import { globalStyles } from '../styles/globalStyles';
 import Header from '../components/header';
+
+import { toast } from '../components/toast';
 
 export default function ViewNotes({toCarry}) 
 {	
@@ -22,6 +24,7 @@ export default function ViewNotes({toCarry})
 
 	const [tempNotesOldList, setTempNotesOldList] = useState([]);
 
+	const [showIndicator, setShowIndicator] = useState(false);
 	const [error, setError] = useState("");
 	const [counter, setCounter] = useState(-1);
 
@@ -72,10 +75,10 @@ export default function ViewNotes({toCarry})
 //on clicking on yes for deleting a notes data list
 	const deleteNoteList = (row_id) =>
 	{
-		setError("please wait...");
+		setShowIndicator(true);
 
 	// useEffect(() => 
- 	// {		 
+ 	// {
 		fetch('http://mngo.in/notes_api/deleteNotesListFromDB.php', 
 		{
 			method: 'POST',
@@ -84,10 +87,9 @@ export default function ViewNotes({toCarry})
 		.then((response) => response.json())
 		.then((responseJson) => 
 		{
+			setShowIndicator(false);
 			if(responseJson == 1)
 			{
-				setError("");
-
 			//removing that textInput	
 				setNotesOldList((prevNotesOldList) => 
 			    {
@@ -96,20 +98,21 @@ export default function ViewNotes({toCarry})
 			}
 			else if(responseJson == 0)
 			{
-				setError("failed to delete");
+				toast("failed to delete");
 			}
 			else if(responseJson == -1)
 			{
-				setError("something went wrong");
+				toast("something went wrong");
 			}
 			else
 			{
-				setError("unknown error");
+				toast("unknown error");
 			}
 		})
 	    .catch((error) => 
 	    {
-	      setError("please check your internet connection");
+	    	setShowIndicator(false);
+	      	toast("please check your internet connection");
 	    });
 	// }, []);
 	}
@@ -145,14 +148,14 @@ export default function ViewNotes({toCarry})
 	{
 		if(saveBtnStatus == "clicked") //if btn is already clicked
 		{
-			setError("hold on!!");
+			toast("hold on!!");
 		}
 		else
 		{
 		//checking if someone is logged or not
 			if(logged_user_id == "")
 			{
-				setError("you are not logged in");
+				toast("you are not logged in");
 			}
 			else
 			{
@@ -201,7 +204,7 @@ export default function ViewNotes({toCarry})
 				{
 					setSaveBtnStatus("clicked");
 
-					setError("please wait...");
+					setShowIndicator(true);
 
 					axios.post('http://mngo.in/notes_api/updateNotesList.php', 
 			        {
@@ -212,44 +215,45 @@ export default function ViewNotes({toCarry})
 			        })
 			        .then(function(response) 
 			        {
-			          setSaveBtnStatus("not_clicked");
-			          
-			          var data = (response.data);		          
-			         
-			          if(data == 0)
-			          {
-			            setError("failed to get your updated data");
-			          }		        
-			          else if(data == -1)
-			          {
-			            setError("something went wrong");
-			          }		          
-			          else
-			          {
-			          	setSaveBtnStatus("clicked");
-			          	setError("");
+			        	setShowIndicator(false);
+						setSaveBtnStatus("not_clicked");
 
-			          	try
-			          	{
-			          		var userNotesJSON = JSON.stringify(data);
+						var data = (response.data);		          
 
-		          		//making cookie of notes of users
-							var user_id = logged_user_id;
-							var user_notes_of = "user_notes_of_" + user_id;
-							AsyncStorage.setItem(user_notes_of, userNotesJSON);
+						if(data == 0)
+						{
+							toast("failed to get your updated data");
+						}		        
+						else if(data == -1)
+						{
+							toast("something went wrong");
+						}		          
+						else
+						{
+							setSaveBtnStatus("clicked");
+							
+							try
+							{
+								var userNotesJSON = JSON.stringify(data);
 
-						//redirecting to the home page  
-		          			Actions.pop();
-			          	}
-			          	catch(error)
-			          	{
-			          		setError("failed to get your updated data");
-			          	}						
-			          }
+							//making cookie of notes of users
+								var user_id = logged_user_id;
+								var user_notes_of = "user_notes_of_" + user_id;
+								AsyncStorage.setItem(user_notes_of, userNotesJSON);
+
+							//redirecting to the home page  
+								Actions.pop();
+							}
+							catch(error)
+							{
+								toast("failed to get your updated data");
+							}						
+			        	}
 			        })
 			        .catch(error => 
 			        {
-			          setError("please check your internet connection");
+			        	setShowIndicator(false);
+			          	toast("please check your internet connection");
 			        });		
 				}	        
 			}
@@ -268,7 +272,7 @@ export default function ViewNotes({toCarry})
 //on clicking on yes for deleteing note
 	const deleteNote = () =>
 	{	
-		setError("please wait...");
+		setShowIndicator(true);
 
 		axios.post('http://mngo.in/notes_api/deleteANote.php', 
         {
@@ -277,6 +281,8 @@ export default function ViewNotes({toCarry})
         })
         .then(function(response) 
         {
+        	setShowIndicator(false);
+
         	try
           	{
           		var data = (response.data);		          
@@ -284,20 +290,18 @@ export default function ViewNotes({toCarry})
 
 				if(userNotesJSON == 0)
 				{
-					setError("failed to delete the note");
+					toast("failed to delete the note");
 				}
 				else if(userNotesJSON == -1)
 				{
-					setError("something went wrong");
+					toast("something went wrong");
 				}          
 				else if(userNotesJSON == -2)
 				{
-					setError("failed to get your updated data");
+					toast("failed to get your updated data");
 				}
 				else
 				{
-					setError("");
-
 				//making cookie of notes of users
 					var user_id = logged_user_id;
 					var user_notes_of = "user_notes_of_" + user_id;
@@ -309,12 +313,13 @@ export default function ViewNotes({toCarry})
           	}
           	catch(error)
           	{
-          		setError("failed to get your updated data");
+          		toast("failed to get your updated data");
           	}
         })
         .catch(error => 
         {
-          setError("please check your internet connection");
+        	setShowIndicator(false);
+          	toast("please check your internet connection");
         });	
 	}
 
@@ -389,21 +394,17 @@ export default function ViewNotes({toCarry})
 			            onChangeText={(val) => setNotesData({title: val, hasChanged: true})}
 			        />
 				</View>
+
+				<TouchableOpacity style={styles.deleteNotesBtnCotainer} onPress={deleteNotesHandler}>
+		        	<Image source={require('../img/delete.png')} style={styles.deleteNotesImg} />
+		        </TouchableOpacity>
 			</View>
-
+			{
+		        showIndicator ?
+		          	<ActivityIndicator size="large" color="#d8d8d8" />
+		        : null
+		    }
 			<View style={globalStyles.notesFormContainer} >
-				<Text style={globalStyles.errorText} >{error}</Text>
-				
-				<View style={globalStyles.picker_and_addListBtn} >
-					<TouchableOpacity style={styles.deleteNotesBtnCotainer} onPress={deleteNotesHandler}>
-			        	<Image source={require('../img/delete.png')} style={styles.deleteNotesImg} />
-			        </TouchableOpacity>
-
-				    <TouchableOpacity style={globalStyles.addNotesListBtn} onPress={(e) => handleAddBtnClick(e) }>
-			        	<Image source={require('../img/add1.png')} style={globalStyles.addBtnText} />
-			        </TouchableOpacity>
-				</View>
-		    	
 		    	<View style={globalStyles.formContainer_scroll}>
 			        <ScrollView style={globalStyles.listNotesFieldContainer}>
 			        {
@@ -447,12 +448,17 @@ export default function ViewNotes({toCarry})
 						            // onKeyPress={handleKeyDown}						            
 					            />
 
-							    <TouchableOpacity onPress={() => removeOldList(row_id)} >
-								    <Image 
-								    	source={require('../img/cross2.png')} 
-								    	style={globalStyles.notesFieldCloseImg} 
-								    />
-							    </TouchableOpacity>
+					            {
+					            	//if types is checkox then showing delete/close icon
+					            	type == 2 ?
+					            		<TouchableOpacity onPress={() => removeOldList(row_id)} >
+										    <Image 
+										    	source={require('../img/cross2.png')} 
+										    	style={globalStyles.notesFieldCloseImg} 
+										    />
+									    </TouchableOpacity>
+					            	: null
+					            }
 							  </View>
 							)
 						})
@@ -468,9 +474,9 @@ const styles = StyleSheet.create(
 {
 	deleteNotesBtnCotainer:
 	{
-		// backgroundColor: 'red',
-		alignItems:'center',
-		width: '50%',
+		// // backgroundColor: 'red',
+		// alignItems:'center',
+		// // width: '50%',
 	},
 
 	deleteNotesImg:

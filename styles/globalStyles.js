@@ -89,14 +89,15 @@ export const globalStyles = StyleSheet.create(
   {
     padding: 0,
     margin: 0,
-    width: '100%',
+    width: '75%',
     alignItems:'flex-start',
     justifyContent :'flex-start'
   },
 
   notesInputBox:
   {
-    width:"88%",
+    // backgroundColor: 'red',
+    width:"100%",
     height: 40,
 
     padding: 0,
@@ -257,7 +258,7 @@ export const globalStyles = StyleSheet.create(
     alignItems:'center',
     justifyContent :'center',
     marginBottom: 50,
-    marginTop: 10,
+    // marginTop: 10,
     // paddingBottom: 50,
   },
 });
