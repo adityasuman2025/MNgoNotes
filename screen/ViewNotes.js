@@ -31,23 +31,36 @@ export default function ViewNotes({toCarry})
 	const [saveBtnStatus, setSaveBtnStatus] = useState("not_clicked");
 
 //on clicking on add btn
-	const handleAddBtnClick = () =>
+	const handleAddBtnClick = (idx) =>
 	{
-		var oldJSON = {};
-		oldJSON["id"] = counter;
-		oldJSON["list_title"] = "";
-		oldJSON["type"] = type;
-		oldJSON["is_active"] = 1;
-		oldJSON["hasChanged"] = true;
+	//creating a new empty json object	
+		var emptyJSON = {};
+		emptyJSON["id"] = counter;
+		emptyJSON["list_title"] = "";
+		emptyJSON["type"] = type;
+		emptyJSON["is_active"] = 1;
+		emptyJSON["hasChanged"] = true;
 
-	// adding the new list
-	 	setNotesOldList((prevNotesOldList) => 
-		{			
-			return [			
-				...prevNotesOldList,
-				oldJSON
-			]
-		});
+	//storing the noteslist	data in a temp array
+		var tempNotesList = [...notesOldList];
+		var len = Object.keys(tempNotesList).length;
+
+	//looping through the temp notes list to insert new empty json at desired position
+		var newNotesList = [];		
+		for(var i =0; i<len; i++)
+		{
+			var thisArray = tempNotesList[i];
+			newNotesList.push(thisArray);
+
+			if(i == idx)// inserting the new empty json at desired position
+			{
+				newNotesList.push(emptyJSON);
+			}
+		}
+
+	// updating the state
+		setNotesOldList([]);
+		setNotesOldList(newNotesList);
 
 		setCounter(counter-1);
 	}
@@ -360,13 +373,11 @@ export default function ViewNotes({toCarry})
 //on submit editing in list textInput
 	const submitEditList = (idx) =>
 	{
-		// console.log("yay!!");
 		var list_len = notesOldList.length;
 		
-		if(type == 2 && (list_len -1) == idx) //if checkbox and that list input field is last then inserting new textinput after that/at bottom
+		if(type == 2) //&& (list_len -1) == idx) //if checkbox
 		{
-			// console.log("yay!!");
-			handleAddBtnClick();
+			handleAddBtnClick(idx);
 		}
 	}
 

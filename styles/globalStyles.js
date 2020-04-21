@@ -135,6 +135,16 @@ export const globalStyles = StyleSheet.create(
     // backgroundColor: 'red',
   },
 
+  listNotesFieldContainer:
+  {
+    // flex: 1,
+    // height: '100%',
+    width:"100%",
+    // marginBottom: 20,
+    // paddingBottom: 20,
+    // backgroundColor: 'red',
+  },
+  
   picker_and_addListBtn:
   {
     width: '100%',
@@ -175,16 +185,6 @@ export const globalStyles = StyleSheet.create(
     width: 21,
     tintColor:'#d8d8d8',
 
-  },
-
-  listNotesFieldContainer:
-  {
-    // flex: 1,
-    // height: '100%',
-    width:"100%",
-    // marginBottom: 20,
-    // paddingBottom: 20,
-    // backgroundColor: 'red',
   },
 
   listNotesFields:
