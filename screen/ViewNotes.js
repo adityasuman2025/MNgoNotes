@@ -9,8 +9,17 @@ import Header from '../components/header';
 
 import { toast } from '../components/toast';
 
-export default function ViewNotes({toCarry}) 
-{	
+export default function ViewNotes(props) 
+{
+	var toCarry = props.toCarry;
+	
+//transffered function from Home screen	
+	const refreshList_a = () =>
+	{
+		props.refreshList();
+	}
+
+//variables/states
 	const logged_user_id = toCarry.logged_user_id;	
 
 	const notes_id = toCarry.notes_id;
@@ -340,6 +349,9 @@ export default function ViewNotes({toCarry})
 				}
 				else
 				{
+				//refreshing the list of notes in Home page	
+					refreshList_a();
+
 				//making cookie of notes of users
 					var user_id = logged_user_id;
 					var user_notes_of = "user_notes_of_" + user_id;
@@ -363,7 +375,7 @@ export default function ViewNotes({toCarry})
 
 //on clicking on checkbox
 	const checkboxClickHandler = (index, row_id, to_set) =>
-	{	
+	{
 	//marking its checkbox condition  	
 		var oldJSON = notesOldList[index];
 		oldJSON["is_active"] = to_set;
@@ -395,7 +407,7 @@ export default function ViewNotes({toCarry})
 	return(
 		<View style={globalStyles.container}>		
 			<View style={globalStyles.notesHeader} >
-				<TouchableOpacity style={globalStyles.createNotesBtn} onPress={onPressSaveBtnHandler}>
+				<TouchableOpacity style={globalStyles.createNotesBtn} onPress={() => onPressSaveBtnHandler()}>
 		        	<Image 
 				    	source={require('../img/save2.png')} 
 				    	style={globalStyles.goBackImg} 
@@ -416,7 +428,7 @@ export default function ViewNotes({toCarry})
 			        />
 				</View>
 
-				<TouchableOpacity style={styles.deleteNotesBtnCotainer} onPress={deleteNotesHandler}>
+				<TouchableOpacity style={styles.deleteNotesBtnCotainer} onPress={() => deleteNotesHandler()}>
 		        	<Image source={require('../img/delete.png')} style={styles.deleteNotesImg} />
 		        </TouchableOpacity>
 			</View>
@@ -476,10 +488,11 @@ export default function ViewNotes({toCarry})
 						            keyboardType="name-phone-pad"
 						            onChangeText={(val) => updateHandlerOfNotesOldList(idx, row_id, val)} 
 						            onSubmitEditing={() => submitEditList(idx)}
+						            autoFocus //to auto focus on creation of its new element
 					            />
 
 					            {
-					            	//if types is checkox then showing delete/close icon
+					            	//if types is checkbox then showing delete/close icon
 					            	type == 2 ?
 					            		<TouchableOpacity onPress={() => removeOldList(row_id)} >
 										    <Image 

@@ -1,94 +1,112 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, FlatList, AsyncStorage, Image, ActivityIndicator } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, FlatList, AsyncStorage, Image, ActivityIndicator, BackAndroid } from 'react-native';
 import axios from 'axios';
 
 import {Actions} from 'react-native-router-flux';
 
 import { globalStyles } from '../styles/globalStyles';
 import Header from '../components/header';
-import CreateNotesArea from '../components/createNotesArea';
 import { toast } from '../components/toast';
 
 export default function Home({toCarry}) 
 {
   const logged_user_id = toCarry.logged_user_id;
-  // console.log("in Home page: " + logged_user_id);
 
   const [notes, setNotes] = useState([]);
   const [showIndicator, setShowIndicator] = useState(true);
 
+  const [counter, setCounter] = useState(1);
+
+//function to refresh the list
+  const refreshList = () =>
+  {
+    console.log("list refreshed");
+
+    setCounter(counter + 1);
+  }
+
 //checking if someone is logged or not
 //before loading that user's data
-    if(logged_user_id == "")
-    {
-      toast("you are not logged in");
-    }
-    else
-    {
-      var user_id = logged_user_id;       
-      var user_notes_of = "user_notes_of_" + user_id;
+  useEffect(() => //useEffect works as componentDidMount
+  {
+    // if(isUpdateRequired) 
+    // {
+    //   setIsUpdateRequired(false);
 
-    //looking for user notes data in cookies  
-      AsyncStorage.getItem(user_notes_of).then((val) =>
+      if(logged_user_id == "")
       {
-        if(val != null) //if some data exist in cookies then loading in flatlist
-        {
-          var data = JSON.parse(val);          
-          setNotes(data);
-          
-          if(showIndicator == true)
-            setShowIndicator(false); //hiding loading animation
-        }
-        else
-        {
-        //posting request to API for getting user notes data from server and storing it as cookies
-          axios.post('http://mngo.in/notes_api/getUserNotes.php', 
-          {
-            user_id: user_id
-          })
-          .then(function(response) 
-          {
-            try
-            {
-              var data = response.data;
-              var dataString = JSON.stringify((response.data));
-              // console.log(dataString);
+        toast("you are not logged in");
+      }
+      else
+      {
+        var user_id = logged_user_id;       
+        var user_notes_of = "user_notes_of_" + user_id;
 
-              if(dataString == 0)
-              {
-                toast("failed to fetch data");
-              }
-              else if(dataString == -1)
-              {
-                toast("something went wrong");
-              }
-              else //some data is there
-              {
-                if(showIndicator == true)
-                  setShowIndicator(false);//hiding loading animation
-
-                AsyncStorage.setItem(user_notes_of, dataString);
-                Actions.refresh();                
-              }
-            }
-            catch
-            {
-              toast("failed to get your updated data");
-            }          
-          })
-          .catch(error => 
+      //looking for user notes data in cookies  
+        AsyncStorage.getItem(user_notes_of).then((val) =>
+        {
+          if(val != null) //if some data exist in cookies then loading in flatlist
           {
-            toast("please check your internet connection");
-          });      
-        }  
-      });
-    }
+            console.log("list loaded");
+            var data = JSON.parse(val);          
+            setNotes(data);
+            
+            if(showIndicator == true)
+              setShowIndicator(false); //hiding loading animation
+          }
+          else
+          {
+          //posting request to API for getting user notes data from server and storing it as cookies
+            axios.post('http://mngo.in/notes_api/getUserNotes.php', 
+            {
+              user_id: user_id
+            })
+            .then(function(response) 
+            {
+              try
+              {
+                var data = response.data;
+                var dataString = JSON.stringify((response.data));
+                console.log("list loaded");
+
+                if(dataString == 0)
+                {
+                  toast("failed to fetch data");
+                }
+                else if(dataString == -1)
+                {
+                  toast("something went wrong");
+                }
+                else //some data is there
+                {
+                  if(showIndicator == true)
+                    setShowIndicator(false);//hiding loading animation
+
+                  AsyncStorage.setItem(user_notes_of, dataString);
+                  Actions.refresh();                
+                }
+              }
+              catch
+              {
+                toast("failed to get your updated data");
+              }          
+            })
+            .catch(error => 
+            {
+              toast("please check your internet connection");
+            });
+          }  
+        });
+      }
+    // }
+  }, [counter]);
 
 //on clicking on any notes
   const onClickingOnAnyNotes = (item) =>
   {
-    // toast("please wait...");
     setShowIndicator(true);
+    
+    // refreshList();
 
     var toCarry = {};
     toCarry['logged_user_id'] = logged_user_id;
@@ -96,7 +114,7 @@ export default function Home({toCarry})
     toCarry['title'] = item.title;
     toCarry['type'] = item.type;    
 
-//loading notes list data from internet
+  //loading notes list data from internet
     axios.post('http://mngo.in/notes_api/getListDataOfANote.php', 
     {
       notes_id: item.notes_id
@@ -126,7 +144,7 @@ export default function Home({toCarry})
 
         //redirecting to notes view page  
           toCarry['notesOldList'] = dataString;
-          Actions.ViewNotesPage({ toCarry: toCarry });
+          Actions.ViewNotesPage({ toCarry: toCarry, refreshList: () => refreshList()  }); //transfering refreshList function so that notes list can be refreshed when a note is deleted
         }
         catch(error)
         {
@@ -141,11 +159,11 @@ export default function Home({toCarry})
       AsyncStorage.getItem(user_notes_list_data).then((val) =>
       {
         setShowIndicator(false);
-        
+
         if(val != null) //if some data exist in cookies then loading in flatlist
         {
           toCarry['notesOldList'] = val;
-          Actions.ViewNotesPage({ toCarry: toCarry });   
+          Actions.ViewNotesPage({ toCarry: toCarry, refreshList: () => refreshList()  }); //transfering refreshList function so that list of notes can be refreshed when a note is deleted
         }
         else
         {
@@ -153,6 +171,16 @@ export default function Home({toCarry})
         }
       });  
     }); 
+  }
+
+//on clicking on + btn  
+  const createNewNoteBtnClickHandler = () =>
+  {
+    var toCarry = {};
+    toCarry['logged_user_id'] = logged_user_id;
+    
+    // console.log("new notes is going to be created");
+    Actions.createNotesForm({ toCarry: toCarry, refreshList: () => refreshList()  }); //transfering refreshList function so that list of notes can be refreshed when a new notes is created
   }
 
 //rendering
@@ -182,12 +210,34 @@ export default function Home({toCarry})
         )}
       />
 
-      <CreateNotesArea toCarry = {{logged_user_id: logged_user_id}} />
+      <TouchableOpacity style={styles.addNotesBtn} onPress={() => createNewNoteBtnClickHandler()}>
+        <Image source={require('../img/add1.png')} style={styles.titleImg} />
+      </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  addNotesBtn:
+  {
+    position: 'absolute',
+    bottom: 8,
+    right:  8,
+    height: 50,
+    width:  50,
+    borderRadius: 100,
+    backgroundColor: "#181915", //455a64
+    alignItems:'center',
+    justifyContent :'center'
+  },
+
+  titleImg:
+  {
+    height: '50%',
+    width: '50%',
+    tintColor: '#455a64',
+  },
+
   list:
   {
     width: '100%',

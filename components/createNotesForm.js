@@ -10,18 +10,17 @@ import Header from '../components/header';
 
 import { toast } from '../components/toast';
 
-export function useForceUpdate() {
-  const [, setTick] = useState(0);
-  const update = useCallback(() => {
-    setTick(tick => tick + 1);
-  }, [])
-  return update;
-}
-
-export default function CreateNotesForm({toCarry}) 
+export default function CreateNotesForm(props) 
 {
-	const forceUpdate = useForceUpdate();
+	var toCarry = props.toCarry;
+	
+//transffered function from Home screen	
+	const refreshList_a = () =>
+	{
+		props.refreshList();
+	}
 
+//variables/states
 	const logged_user_id = toCarry.logged_user_id;
 	
 	const [notesData, setNotesData] = useState({title: "", type: 1});	
@@ -167,6 +166,7 @@ export default function CreateNotesForm({toCarry})
 //on clicking on done/back/left-arrow btn
 	const doneCreatingNotesBtn = () =>
 	{
+		// console.log("Yo");
 		if(saveBtnStatus == "clicked") //if btn is already clicked
 		{
 			toast("hold on!!");
@@ -232,6 +232,10 @@ export default function CreateNotesForm({toCarry})
 								setSaveBtnStatus("clicked");
 								try
 								{
+								//refreshing the list of notes in Home page
+									refreshList_a();
+
+								//making cookies of updated notes list	
 									var dataString = JSON.stringify((response.data));
 									AsyncStorage.setItem(user_notes_of, dataString);
 
@@ -282,7 +286,7 @@ export default function CreateNotesForm({toCarry})
 			<View style={globalStyles.notesHeader} >
 				<TouchableOpacity 
 					style={globalStyles.createNotesBtn} 
-					onPress={doneCreatingNotesBtn}
+					onPress={() => doneCreatingNotesBtn()}
 				>
 		        	<Image 
 				    	source={require('../img/save2.png')} 
@@ -298,7 +302,6 @@ export default function CreateNotesForm({toCarry})
 			            selectionColor="#d8d8d8"
 			            keyboardType="name-phone-pad"
 			            autoCapitalize = "words"
-			            autoFocus
 			            onChangeText={(val) => setNotesData({title: val, type: notesData.type})}
 			        />
 				</View>				
@@ -369,7 +372,7 @@ export default function CreateNotesForm({toCarry})
 						            keyboardType="name-phone-pad"
 						            onChangeText={(val)=> addListData(idx, val)}
 						            onSubmitEditing={() => submitEditList(idx)}
-						            // value={title}
+						            autoFocus //to auto focus on creation of its new element
 						           />
 
 						        {
