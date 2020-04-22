@@ -265,6 +265,7 @@ export default function ViewNotes({toCarry})
 			        .catch(error => 
 			        {
 			        	setShowIndicator(false);
+			        	setSaveBtnStatus("not_clicked");
 			          	toast("please check your internet connection");
 			        });		
 				}	        

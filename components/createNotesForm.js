@@ -148,104 +148,105 @@ export default function CreateNotesForm({toCarry})
 	}
 
 //on clicking on done/back/left-arrow btn
-	// const doneCreatingNotesBtn = () =>
-	// {
-	// 	if(saveBtnStatus == "clicked") //if btn is already clicked
-	// 	{
-	// 		toast("hold on!!");
-	// 	}
-	// 	else
-	// 	{
-	// 	//checking if someone is logged or not
-	// 		if(logged_user_id == "")
-	// 		{
-	// 			// Actions.pop();
-	// 			toast("you are not logged in");
-	// 		}
-	// 		else
-	// 		{
-	// 			var title = notesData.title;
-	// 			var type = notesData.type;		
+	const doneCreatingNotesBtn = () =>
+	{
+		if(saveBtnStatus == "clicked") //if btn is already clicked
+		{
+			toast("hold on!!");
+		}
+		else
+		{
+		//checking if someone is logged or not
+			if(logged_user_id == "")
+			{
+				// Actions.pop();
+				toast("you are not logged in");
+			}
+			else
+			{
+				var title = notesData.title;
+				var type = notesData.type;		
 
-	// 			var listLength = Object.keys(notesList).length;	
+				var listLength = Object.keys(notesList).length;	
 
-	// 			if(title != "" && type != "")
-	// 			{
-	// 				if(listLength > 0)
-	// 				{
-	// 					setSaveBtnStatus("clicked");
+				if(title != "" && type != "")
+				{
+					if(listLength > 0)
+					{
+						setSaveBtnStatus("clicked");
 
-	// 					// setError("please wait...");
+						setShowIndicator(true);
 
-	// 				//getting logged user notes data
-	// 					var user_id = logged_user_id;
-	// 					var user_notes_of = "user_notes_of_" + user_id;
+					//getting logged user notes data
+						var user_id = logged_user_id;
+						var user_notes_of = "user_notes_of_" + user_id;
 
-	// 				//posting data to API  
-	// 			        axios.post('http://mngo.in/notes_api/addUserNotesInDB.php', 
-	// 			        {
-	// 			        	user_id: user_id,
-	// 			          	notesData: JSON.stringify(notesData),
-	// 			          	notesList: JSON.stringify(notesList),
-	// 			        })
-	// 			        .then(function(response) 
-	// 			        {
-	// 			          setSaveBtnStatus("not_clicked");
+					//posting data to API  
+				        axios.post('http://mngo.in/notes_api/addUserNotesInDB.php', 
+				        {
+				        	user_id: user_id,
+				          	notesData: JSON.stringify(notesData),
+				          	notesList: JSON.stringify(notesList),
+				        })
+				        .then(function(response) 
+				        {
+							setSaveBtnStatus("not_clicked");
+							setShowIndicator(false);
 
-	// 			          var data = (response.data).toString();
-	// 			          // console.log(data);
+							var data = (response.data).toString();
+							if(data == 0)
+							{
+							toast("failed to create notes");
+							}
+							else if(data == -2)
+							{
+							toast("failed to create notes list");
+							}
+							else if(data == -3)
+							{
+							toast("failed to create notes");
+							}
+							else if(data == -1)
+							{
+							toast("something went wrong");
+							}		          
+							else
+							{
+								setSaveBtnStatus("clicked");
+								try
+								{
+									var dataString = JSON.stringify((response.data));
+								AsyncStorage.setItem(user_notes_of, dataString);
 
-	// 			          if(data == 0)
-	// 			          {
-	// 			            toast("failed to create notes");
-	// 			          }
-	// 			          else if(data == -2)
-	// 			          {
-	// 			            toast("failed to create notes list");
-	// 			          }
-	// 			          else if(data == -3)
-	// 			          {
-	// 			            toast("failed to create notes");
-	// 			          }
-	// 			          else if(data == -1)
-	// 			          {
-	// 			            toast("something went wrong");
-	// 			          }		          
-	// 			          else
-	// 			          {
-	// 			          	setSaveBtnStatus("clicked");
-	// 			          	try
-	// 			          	{
-	// 			          		var dataString = JSON.stringify((response.data));		          	
-	// 							AsyncStorage.setItem(user_notes_of, dataString);
-
-	// 			              //redirecting to the home page  
-	// 		          			Actions.pop();
-	// 			          	}
-	// 			          	catch(error)
-	// 			          	{
-	// 			          		toast("failed to get your updated data");
-	// 			          	}					
-	// 			          }
-	// 			        })
-	// 			        .catch(error => 
-	// 			        {
-	// 			          toast("please check your internet connection");
-	// 			        });
-	// 				}
-	// 				else
-	// 				{
-	// 					toast("you can't create an empty Notes");
-	// 				}
-	// 			}
-	// 			else
-	// 			{
-	// 				// Actions.pop();
-	// 				toast("title or type can't be empty");
-	// 			}	
-	// 		}	
-	// 	}
-	// }
+							  //redirecting to the home page  
+									Actions.pop();
+								}
+								catch(error)
+								{
+									toast("failed to get your updated data");
+								}
+							}
+				        })
+				        .catch(error => 
+				        {
+				        	setShowIndicator(false);
+				        	setSaveBtnStatus("not_clicked");
+				          	toast("please check your internet connection");
+				        });
+					}
+					else
+					{
+						toast("you can't create an empty Notes");
+					}
+				}
+				else
+				{
+					// Actions.pop();
+					toast("title or type can't be empty");
+				}	
+			}	
+		}
+	}
 
 //on submit editing in list textInput
 	const submitEditList = (idx) =>
@@ -264,7 +265,7 @@ export default function CreateNotesForm({toCarry})
 			<View style={globalStyles.notesHeader} >
 				<TouchableOpacity 
 					style={globalStyles.createNotesBtn} 
-					// onPress={doneCreatingNotesBtn}
+					onPress={doneCreatingNotesBtn}
 				>
 		        	<Image 
 				    	source={require('../img/save2.png')} 
@@ -287,6 +288,11 @@ export default function CreateNotesForm({toCarry})
 			</View>
 
 			<View style={globalStyles.notesFormContainer} >
+				{
+			        showIndicator ?
+			          	<ActivityIndicator size="large" color="#d8d8d8" />
+			        : null
+			    }
 				<View style={globalStyles.picker_and_addListBtn} >
 					<Picker
 			       		selectedValue={notesData.type}
