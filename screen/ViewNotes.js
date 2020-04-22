@@ -32,9 +32,10 @@ export default function ViewNotes({toCarry})
 //on clicking on add btn
 	const handleAddBtnClick = (idx) =>
 	{
-	//creating a new empty json object	
+	//creating a new empty json object
 		var emptyJSON = {};
 		emptyJSON["id"] = counter;
+		emptyJSON["position"] = "";
 		emptyJSON["list_title"] = "";
 		emptyJSON["type"] = type;
 		emptyJSON["is_active"] = 1;
@@ -53,6 +54,20 @@ export default function ViewNotes({toCarry})
 
 			if(i == idx)// inserting the new empty json at desired position
 			{
+				if(i == len - 1) //if last element
+				{
+					var newPosition = parseInt(parseInt(thisArray["position"]) + 100000);
+					emptyJSON["position"] = newPosition;
+				}
+				else //if any betweeb elements
+				{
+					var thisPosition = thisArray["position"];
+					var nextPosition = tempNotesList[i+1]["position"];
+
+					var newPosition = parseInt((parseInt(thisPosition) + parseInt(nextPosition))/2);
+					emptyJSON["position"] = newPosition;
+				}
+
 				newNotesList.push(emptyJSON);
 			}
 		}
@@ -147,14 +162,6 @@ export default function ViewNotes({toCarry})
 		//that textinput remains at the same place and we can alwo type there freely
 	}
 
-//when enter is pressed in list textInput
-	const handleKeyDown = (e) =>
-	{
-	    // if(e.nativeEvent.key == "Enter" && type == 2) //if type is checkbox and enter key is pressed
-	    // {	  
-	    // }
-	}
-
 //on clicking on save btn
 	const onPressSaveBtnHandler = () =>
 	{
@@ -186,7 +193,6 @@ export default function ViewNotes({toCarry})
 				for(var i = 0; i<len; i++)
 				{
 					var id 				= notesOldList[i].id;
-					var list_title 		= (notesOldList[i].list_title).trim();
 					var hasChanged 		= notesOldList[i].hasChanged;
 
 					if(parseInt(id)>0) //if notes list is old
@@ -206,16 +212,17 @@ export default function ViewNotes({toCarry})
 				if(listLength == 0)		
 					notesOldList_db = 0;
 
-			//inserting data in DB			
+				console.log(JSON.stringify(notesOldList_db));
+
+		// //inserting data in DB
 				if(notesData_db == 0 && notesOldList_db == 0)
 				{
 				//redirecting to the home page  
-	          		Actions.pop();	
+	 		      Actions.pop();	
 				}
 				else
 				{
 					setSaveBtnStatus("clicked");
-
 					setShowIndicator(true);
 
 					axios.post('http://mngo.in/notes_api/updateNotesList.php', 
@@ -230,16 +237,18 @@ export default function ViewNotes({toCarry})
 			        	setShowIndicator(false);
 						setSaveBtnStatus("not_clicked");
 
-						var data = (response.data);		          
+						var data = (response.data);
+						// var userNotesJSON = JSON.stringify(data);
+						// console.log(userNotesJSON);
 
 						if(data == 0)
 						{
 							toast("failed to get your updated data");
-						}		        
+						}
 						else if(data == -1)
 						{
 							toast("something went wrong");
-						}		          
+						}
 						else
 						{
 							setSaveBtnStatus("clicked");
@@ -259,15 +268,16 @@ export default function ViewNotes({toCarry})
 							catch(error)
 							{
 								toast("failed to get your updated data");
-							}						
-			        	}
+							}
+						}
 			        })
 			        .catch(error => 
 			        {
 			        	setShowIndicator(false);
 			        	setSaveBtnStatus("not_clicked");
+			        	
 			          	toast("please check your internet connection");
-			        });		
+			        });
 				}	        
 			}
 		}
@@ -431,7 +441,7 @@ export default function ViewNotes({toCarry})
 							{
 								var to_set = is_active == 1 ? 2: 1;
 								html.push(
-									<TouchableOpacity key={row_id} onPress={() => checkboxClickHandler(idx, row_id, to_set)} >
+									<TouchableOpacity key={idx} onPress={() => checkboxClickHandler(idx, row_id, to_set)} >
 									    <Image 
 									    	source={is_active == 1 ? require('../img/unchecked.png'): require('../img/checked.png')} 
 									    	style={globalStyles.notesCheckedImg} 
@@ -441,7 +451,7 @@ export default function ViewNotes({toCarry})
 							}
 
 							return(
-							  <View key={row_id} style={globalStyles.listNotesFields} >
+							  <View key={idx} style={globalStyles.listNotesFields} >
 							  	{html}
 
 							   	<TextInput

@@ -216,7 +216,7 @@ export default function CreateNotesForm({toCarry})
 								try
 								{
 									var dataString = JSON.stringify((response.data));
-								AsyncStorage.setItem(user_notes_of, dataString);
+									AsyncStorage.setItem(user_notes_of, dataString);
 
 							  //redirecting to the home page  
 									Actions.pop();
