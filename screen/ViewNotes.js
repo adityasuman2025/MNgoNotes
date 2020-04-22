@@ -25,7 +25,6 @@ export default function ViewNotes({toCarry})
 	const [tempNotesOldList, setTempNotesOldList] = useState([]);
 
 	const [showIndicator, setShowIndicator] = useState(false);
-	const [error, setError] = useState("");
 	const [counter, setCounter] = useState(-1);
 
 	const [saveBtnStatus, setSaveBtnStatus] = useState("not_clicked");
