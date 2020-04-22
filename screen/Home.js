@@ -25,80 +25,78 @@ export default function Home({toCarry})
     setCounter(counter + 1);
   }
 
-//checking if someone is logged or not
-//before loading that user's data
+//here it updates UI on change of counter
   useEffect(() => //useEffect works as componentDidMount
   {
-    // if(isUpdateRequired) 
-    // {
-    //   setIsUpdateRequired(false);
+    if(logged_user_id == "")
+    {
+      toast("you are not logged in");
+    }
+    else
+    {
+      var user_id = logged_user_id;       
+      var user_notes_of = "user_notes_of_" + user_id;
 
-      if(logged_user_id == "")
+    //looking for user notes data in cookies  
+      AsyncStorage.getItem(user_notes_of).then((val) =>
       {
-        toast("you are not logged in");
-      }
-      else
-      {
-        var user_id = logged_user_id;       
-        var user_notes_of = "user_notes_of_" + user_id;
-
-      //looking for user notes data in cookies  
-        AsyncStorage.getItem(user_notes_of).then((val) =>
+        if(val != null) //if some data exist in cookies then loading in flatlist
         {
-          if(val != null) //if some data exist in cookies then loading in flatlist
+          console.log("list loaded from cookie");
+          var data = JSON.parse(val);          
+          setNotes(data);
+          
+          if(showIndicator == true)
+            setShowIndicator(false); //hiding loading animation
+        }
+        else
+        {
+        //posting request to API for getting user notes data from server and storing it as cookies
+          axios.post('http://mngo.in/notes_api/getUserNotes.php', 
           {
-            console.log("list loaded");
-            var data = JSON.parse(val);          
-            setNotes(data);
-            
-            if(showIndicator == true)
-              setShowIndicator(false); //hiding loading animation
-          }
-          else
+            user_id: user_id
+          })
+          .then(function(response) 
           {
-          //posting request to API for getting user notes data from server and storing it as cookies
-            axios.post('http://mngo.in/notes_api/getUserNotes.php', 
+            try
             {
-              user_id: user_id
-            })
-            .then(function(response) 
-            {
-              try
+              var data = response.data;
+              var dataString = JSON.stringify((response.data));
+              console.log("list loaded from internet");
+
+              if(dataString == 0)
               {
-                var data = response.data;
-                var dataString = JSON.stringify((response.data));
-                console.log("list loaded");
-
-                if(dataString == 0)
-                {
-                  toast("failed to fetch data");
-                }
-                else if(dataString == -1)
-                {
-                  toast("something went wrong");
-                }
-                else //some data is there
-                {
-                  if(showIndicator == true)
-                    setShowIndicator(false);//hiding loading animation
-
-                  AsyncStorage.setItem(user_notes_of, dataString);
-                  Actions.refresh();                
-                }
+                toast("failed to fetch data");
               }
-              catch
+              else if(dataString == -1)
               {
-                toast("failed to get your updated data");
-              }          
-            })
-            .catch(error => 
+                toast("something went wrong");
+              }
+              else //some data is there
+              {
+                if(showIndicator == true)
+                  setShowIndicator(false);//hiding loading animation
+
+              //making cookie of the list of notes  
+                AsyncStorage.setItem(user_notes_of, dataString);
+                Actions.refresh();
+
+              //refreshing for loading UI  
+                refreshList();
+              }
+            }
+            catch
             {
-              toast("please check your internet connection");
-            });
-          }  
-        });
-      }
-    // }
+              toast("failed to get your updated data");
+            }          
+          })
+          .catch(error => 
+          {
+            toast("please check your internet connection");
+          });
+        }  
+      });
+    }
   }, [counter]);
 
 //on clicking on any notes
@@ -173,7 +171,7 @@ export default function Home({toCarry})
     }); 
   }
 
-//on clicking on + btn  
+//on clicking on +/add item btn  
   const createNewNoteBtnClickHandler = () =>
   {
     var toCarry = {};
