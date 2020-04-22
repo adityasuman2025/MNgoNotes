@@ -488,7 +488,7 @@ export default function ViewNotes(props)
 						            keyboardType="name-phone-pad"
 						            onChangeText={(val) => updateHandlerOfNotesOldList(idx, row_id, val)} 
 						            onSubmitEditing={() => submitEditList(idx)}
-						            autoFocus //to auto focus on creation of its new element
+						            // autoFocus //to auto focus on creation of its new element
 					            />
 
 					            {
