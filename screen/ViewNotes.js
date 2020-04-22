@@ -275,7 +275,7 @@ export default function ViewNotes({toCarry})
 			        {
 			        	setShowIndicator(false);
 			        	setSaveBtnStatus("not_clicked");
-			        	
+
 			          	toast("please check your internet connection");
 			        });
 				}	        
@@ -363,21 +363,6 @@ export default function ViewNotes({toCarry})
 
 	    //i don't know how its happening, but its really happening.
 		//that textinput remains at the same place and we can alwo type there freely
-
-	// //for making that text input appear at last/bottom
-	// 	setNotesOldList((prevNotesOldList) => 
-	// 	{
-	// 		return prevNotesOldList.filter(newNotesOldList => newNotesOldList.id != row_id)
-	// 	});
-
-	// //adding the new edited json in array	
-	// 	setNotesOldList((prevNotesOldList) => 
-	// 	{			
-	// 		return [			
-	// 			...prevNotesOldList,
-	// 			oldJSON
-	// 		]
-	// 	});
 	}
 
 //on submit editing in list textInput
