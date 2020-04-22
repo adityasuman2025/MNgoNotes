@@ -45,8 +45,23 @@ export default function ViewNotes({toCarry})
 		var tempNotesList = [...notesOldList];
 		var len = Object.keys(tempNotesList).length;
 
+		var newNotesList = [];
+
+	//if to be added at beginning
+		if(idx == -1)
+		{
+			if(len == 0) //if list is empty
+				var nextPosition = 100000;
+			else
+				var nextPosition = tempNotesList[0]["position"];
+
+			var newPosition = parseInt((parseInt(0) + parseInt(nextPosition))/2);
+
+			emptyJSON["position"] = newPosition;
+			newNotesList.push(emptyJSON);
+		}
+	
 	//looping through the temp notes list to insert new empty json at desired position
-		var newNotesList = [];		
 		for(var i =0; i<len; i++)
 		{
 			var thisArray = tempNotesList[i];
@@ -56,10 +71,10 @@ export default function ViewNotes({toCarry})
 			{
 				if(i == len - 1) //if last element
 				{
-					var newPosition = parseInt(parseInt(thisArray["position"]) + 100000);
+					var newPosition = parseInt(parseInt(thisArray["position"]) + parseInt(100000));
 					emptyJSON["position"] = newPosition;
 				}
-				else //if any betweeb elements
+				else //if any between elements
 				{
 					var thisPosition = thisArray["position"];
 					var nextPosition = tempNotesList[i+1]["position"];
@@ -71,7 +86,7 @@ export default function ViewNotes({toCarry})
 				newNotesList.push(emptyJSON);
 			}
 		}
-
+		
 	// updating the state
 		setNotesOldList([]);
 		setNotesOldList(newNotesList);
@@ -212,7 +227,7 @@ export default function ViewNotes({toCarry})
 				if(listLength == 0)		
 					notesOldList_db = 0;
 
-				console.log(JSON.stringify(notesOldList_db));
+				// console.log(JSON.stringify(notesOldList_db));
 
 		// //inserting data in DB
 				if(notesData_db == 0 && notesOldList_db == 0)
@@ -411,6 +426,17 @@ export default function ViewNotes({toCarry})
 		        : null
 		    }
 			<View style={globalStyles.notesFormContainer} >
+				{
+			  		type == 2 ?
+			  			<View style={globalStyles.picker_and_addListBtn} >
+						    <TouchableOpacity style={globalStyles.addNotesListBtn} onPress={() => handleAddBtnClick(-1) }>
+					        	<Image source={require('../img/add1.png')} style={globalStyles.addBtnText} />
+					        	<Text style={{color: '#d8d8d8'}} > Add Item</Text>
+					        </TouchableOpacity>
+						</View>
+					: null
+			  	}
+
 		    	<View style={globalStyles.formContainer_scroll}>
 			        <ScrollView style={globalStyles.listNotesFieldContainer}>
 			        {
@@ -431,7 +457,7 @@ export default function ViewNotes({toCarry})
 									    	source={is_active == 1 ? require('../img/unchecked.png'): require('../img/checked.png')} 
 									    	style={globalStyles.notesCheckedImg} 
 									    />
-								    </TouchableOpacity>						
+								    </TouchableOpacity>
 					            );
 							}
 
@@ -443,15 +469,13 @@ export default function ViewNotes({toCarry})
 							   		multiline = {type == 2 ? false: true}
 							    	style = {(type == 2) ? (is_active == 2)? globalStyles.notesListInput_checked: globalStyles.notesListInput_checkbox : globalStyles.notesListInput_normal}
 						            underlineColorAndroid='rgba(0,0,0,0)' 
-						            placeholder= "type text"					            
+						            placeholder= "type text"
 						            placeholderTextColor = "#d8d8d8"
 									value = {title}
 						            selectionColor="#d8d8d8"
 						            keyboardType="name-phone-pad"
 						            onChangeText={(val) => updateHandlerOfNotesOldList(idx, row_id, val)} 
 						            onSubmitEditing={() => submitEditList(idx)}
-
-						            // onKeyPress={handleKeyDown}						            
 					            />
 
 					            {

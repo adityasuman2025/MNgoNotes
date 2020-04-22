@@ -153,8 +153,6 @@ export const globalStyles = StyleSheet.create(
     flexDirection: 'row',
     alignItems:'center',
     justifyContent :'center',
-
-    // backgroundColor: 'red',
   },
 
   pickerBox:
@@ -166,17 +164,16 @@ export const globalStyles = StyleSheet.create(
     margin: 0,
     color:'#d8d8d8',
     paddingHorizontal: 15,
-
-    // backgroundColor: 'pink'
   },
 
   addNotesListBtn:
   {
     margin:0,
     padding:0,
-    width: '50%',
-    // backgroundColor: 'red',
-    alignItems: 'center',
+    width: '90%',
+
+    flexDirection: 'row',
+    paddingVertical: 10,
   },
   
   addBtnText: 

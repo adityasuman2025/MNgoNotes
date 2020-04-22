@@ -24,7 +24,7 @@ export default function CreateNotesForm({toCarry})
 
 	const logged_user_id = toCarry.logged_user_id;
 	
-	const [notesData, setNotesData] = useState({title: "", type: ""});	
+	const [notesData, setNotesData] = useState({title: "", type: 1});	
 
 	const [notesList, setNotesList] = useState([{position: 100000, title: "", is_active: 1}]);
 	const [tempNotesList, setTempNotesList] = useState([]);
@@ -45,8 +45,23 @@ export default function CreateNotesForm({toCarry})
 		var tempNotesList = [...notesList];
 		var len = Object.keys(tempNotesList).length;
 
+		var newNotesList = [];
+
+	//if to be added at beginning
+		if(idx == -1)
+		{
+			if(len == 0) //if list is empty
+				var nextPosition = 100000;
+			else
+				var nextPosition = tempNotesList[0]["position"];
+
+			var newPosition = parseInt((parseInt(0) + parseInt(nextPosition))/2);
+
+			emptyJSON["position"] = newPosition;
+			newNotesList.push(emptyJSON);
+		}
+
 	//looping through the temp notes list to insert new empty json at desired position
-		var newNotesList = [];		
 		for(var i =0; i<len; i++)
 		{
 			var thisArray = tempNotesList[i];
@@ -56,7 +71,7 @@ export default function CreateNotesForm({toCarry})
 			{
 				if(i == len - 1) //if last element
 				{
-					var newPosition = parseInt(thisArray["position"] + 100000);
+					var newPosition = parseInt(parseInt(thisArray["position"]) + parseInt(100000));
 					emptyJSON["position"] = newPosition;
 				}
 				else //if any betweeb elements
@@ -64,7 +79,7 @@ export default function CreateNotesForm({toCarry})
 					var thisPosition = thisArray["position"];
 					var nextPosition = tempNotesList[i+1]["position"];
 
-					var newPosition = parseInt((thisPosition + nextPosition)/2);
+					var newPosition = parseInt((parseInt(thisPosition) + parseInt(nextPosition))/2);
 					emptyJSON["position"] = newPosition;
 				}
 				newNotesList.push(emptyJSON);
@@ -74,6 +89,8 @@ export default function CreateNotesForm({toCarry})
 	// updating the state
 		setNotesList([]);
 		setNotesList(newNotesList);
+
+		// console.log(notesList);
 	}
 
 //on selecting a type
@@ -304,6 +321,16 @@ export default function CreateNotesForm({toCarry})
 					  	<Picker.Item label="checkbox" value="2" />
 					</Picker>
 				</View>
+			  	{
+			  		notesData.type == 2 ?
+			  			<View style={globalStyles.picker_and_addListBtn} >
+						    <TouchableOpacity style={globalStyles.addNotesListBtn} onPress={() => handleAddBtnClick(-1) }>
+					        	<Image source={require('../img/add1.png')} style={globalStyles.addBtnText} />
+					        	<Text style={{color: '#d8d8d8'}} > Add Item</Text>
+					        </TouchableOpacity>
+						</View>
+					: null
+			  	}
 		       	
 		        <View style={globalStyles.formContainer_scroll}>
 		        	<ScrollView style={globalStyles.listNotesFieldContainer} >
