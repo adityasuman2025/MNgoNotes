@@ -443,7 +443,7 @@ export default function ViewNotes(props)
 			            underlineColorAndroid='rgba(0,0,0,0)' 
 			            placeholder= "Title"
 			            placeholderTextColor = "#d8d8d8"
-			            selectionColor="#d8d8d8"
+			            selectionColor="#1c313a"
 			            keyboardType="name-phone-pad"
 			            autoCapitalize = "words"
 			            value = {notesData.title}
@@ -507,7 +507,8 @@ export default function ViewNotes(props)
 						            placeholder= "type text"
 						            placeholderTextColor = "#d8d8d8"
 									value = {title}
-						            selectionColor="#d8d8d8"
+						            selectionColor="#1c313a"
+						            tintColor="#1c313a"
 						            keyboardType="name-phone-pad"
 						            onChangeText={(val) => updateHandlerOfNotesOldList(idx, row_id, val)} 
 						            onSubmitEditing={() => submitEditList(idx)}

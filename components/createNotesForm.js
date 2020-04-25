@@ -317,7 +317,7 @@ export default function CreateNotesForm(props)
 			            underlineColorAndroid='rgba(0,0,0,0)' 
 			            placeholder="Title"
 			            placeholderTextColor = "#d8d8d8"
-			            selectionColor="#d8d8d8"
+			            selectionColor="#1c313a"
 			            keyboardType="name-phone-pad"
 			            autoCapitalize = "words"
 			            onChangeText={(val) => setNotesData({title: val, type: notesData.type})}
@@ -386,7 +386,7 @@ export default function CreateNotesForm(props)
 						            underlineColorAndroid='rgba(0,0,0,0)' 
 						            placeholder= "type text"
 						            placeholderTextColor = "#d8d8d8"
-									selectionColor="#d8d8d8"
+									selectionColor="#1c313a"
 						            keyboardType="name-phone-pad"
 						            onChangeText={(val)=> addListData(idx, val)}
 						            onSubmitEditing={() => submitEditList(idx)}
@@ -414,7 +414,3 @@ export default function CreateNotesForm(props)
 		</View>
 	)
 }
-
-const styles = StyleSheet.create(
-{
-});

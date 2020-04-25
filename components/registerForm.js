@@ -101,40 +101,38 @@ export default function RegisterForm()
         <Text style={styles.logoText}>MNgo Notes</Text> 
 
         <View style={globalStyles.formContainer} >
-          <TextInput style={globalStyles.inputBox} 
-              underlineColorAndroid='rgba(0,0,0,0)' 
+          <TextInput style={globalStyles.inputBox}
               placeholder="Username"
               placeholderTextColor = "#d8d8d8"
-              selectionColor="#d8d8d8"
+              selectionColor="#1c313a"
               keyboardType="name-phone-pad"
               autoCapitalize = 'none'
               autoFocus
               onChangeText={(username) => setRegisterInfo({username: username, email: registerInfo.email, password: registerInfo.password, conf_pass: registerInfo.conf_pass})}
           />
 
-          <TextInput style={globalStyles.inputBox} 
-              underlineColorAndroid='rgba(0,0,0,0)' 
+          <TextInput style={globalStyles.inputBox}
               placeholder="Email"
               placeholderTextColor = "#d8d8d8"
-              selectionColor="#d8d8d8"
+              selectionColor="#1c313a"
               keyboardType="email-address"
               autoCapitalize = 'none'
               onChangeText={(email) => setRegisterInfo({username: registerInfo.username, email: email, password: registerInfo.password, conf_pass: registerInfo.conf_pass})}
           />
 
-          <TextInput style={globalStyles.inputBox} 
-              underlineColorAndroid='rgba(0,0,0,0)' 
+          <TextInput style={globalStyles.inputBox}
               placeholder="Password"
               secureTextEntry={true}
               placeholderTextColor = "#d8d8d8"
+              selectionColor="#1c313a"
               onChangeText={(password) => setRegisterInfo({username: registerInfo.username, email: registerInfo.email, password: password, conf_pass: registerInfo.conf_pass})}
           />  
 
-          <TextInput style={globalStyles.inputBox} 
-              underlineColorAndroid='rgba(0,0,0,0)' 
+          <TextInput style={globalStyles.inputBox}
               placeholder="Confirm Password"
               secureTextEntry={true}
               placeholderTextColor = "#d8d8d8"
+              selectionColor="#1c313a"
               onChangeText={(conf_pass) => setRegisterInfo({username: registerInfo.username, email: registerInfo.email, password: registerInfo.password, conf_pass: conf_pass})}
           />
         </View>

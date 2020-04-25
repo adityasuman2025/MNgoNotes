@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
   {
     height: 75,
     width: 60,
-    tintColor: '#d8d8d8',
+    tintColor: '#fff',
     marginRight: 10,
   },
 
@@ -277,7 +277,7 @@ const styles = StyleSheet.create({
 
   listType:
   {
-    color: "#b2b2b2",
+    color: "#1c313a",
     textAlign: 'left',
     padding: 0,
     margin :0,

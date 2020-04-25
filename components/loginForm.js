@@ -95,22 +95,21 @@ export default function LoginForm()
         <Text style={styles.logoText}>MNgo Notes</Text> 
 
         <View style={globalStyles.formContainer} >
-           <TextInput style={globalStyles.inputBox} 
-              underlineColorAndroid='rgba(0,0,0,0)' 
+           <TextInput style={globalStyles.inputBox}
               placeholder="Email"
               placeholderTextColor = "#d8d8d8"
-              selectionColor="#d8d8d8"
+              selectionColor="#1c313a"
               keyboardType="email-address"
               autoCapitalize = 'none'
               autoFocus
               onChangeText={(val) => setLoginInfo({email: val, password: loginInfo.password})}
           />
 
-          <TextInput style={globalStyles.inputBox} 
-              underlineColorAndroid='rgba(0,0,0,0)' 
+          <TextInput style={globalStyles.inputBox}
               placeholder="Password"
-              secureTextEntry={true}
               placeholderTextColor = "#d8d8d8"
+              selectionColor="#1c313a"
+              secureTextEntry={true}
               onChangeText={(val) => setLoginInfo({email: loginInfo.email, password: val})}
           />   
         </View>
