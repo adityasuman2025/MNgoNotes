@@ -34,17 +34,28 @@ export default function CreateNotesForm(props)
 //componentDidMount
 	useEffect(() => 
 	{
-		console.log('mounted')
-	}, []);
+	//to handle back button press
+		BackHandler.addEventListener('hardwareBackPress', backBtnPressed);
+	}, [notesData, notesList]);
 
 //componentWillUnmount
 	useEffect(() => 
 	{
 		return () => 
 		{
-			console.log('will unmount');
+		//to handle back button press
+			BackHandler.removeEventListener('hardwareBackPress', backBtnPressed);
 		}
-	}, []);
+	}, [notesData, notesList]);
+
+//function to run when back btn is pressed
+	const backBtnPressed = () =>
+	{
+		console.log("back btn pressed");
+		
+		doneCreatingNotesBtn();
+		// return true; //prevents the original back action
+	}
 
 //on clicking on add btn
 	const handleAddBtnClick = (idx) =>
@@ -181,7 +192,6 @@ export default function CreateNotesForm(props)
 //on clicking on done/back/left-arrow btn
 	const doneCreatingNotesBtn = () =>
 	{
-		// console.log("Yo");
 		if(saveBtnStatus == "clicked") //if btn is already clicked
 		{
 			toast("hold on!!");
@@ -196,24 +206,21 @@ export default function CreateNotesForm(props)
 			}
 			else
 			{
+				console.log(notesData);
 				var title = notesData.title;
 				var type = notesData.type;		
 
-				var listLength = Object.keys(notesList).length;	
-
 				if(title != "" && type != "")
 				{
-					if(listLength > 0)
-					{
-						setSaveBtnStatus("clicked");
+					setSaveBtnStatus("clicked");
 
-						setShowIndicator(true);
+					setShowIndicator(true);
 
-					//getting logged user notes data
-						var user_id = logged_user_id;
-						var user_notes_of = "user_notes_of_" + user_id;
+				//getting logged user notes data
+					var user_id = logged_user_id;
+					var user_notes_of = "user_notes_of_" + user_id;
 
-					//posting data to API  
+				//posting data to API  
 				        axios.post('http://mngo.in/notes_api/addUserNotesInDB.php', 
 				        {
 				        	user_id: user_id,
@@ -269,11 +276,6 @@ export default function CreateNotesForm(props)
 				        	setSaveBtnStatus("not_clicked");
 				          	toast("please check your internet connection");
 				        });
-					}
-					else
-					{
-						toast("you can't create an empty Notes");
-					}
 				}
 				else
 				{
