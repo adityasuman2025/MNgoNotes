@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, Image, TouchableOpacity, ScrollView, AsyncStorage, Alert, TextInput, ActivityIndicator } from 'react-native';
+import { StyleSheet, Text, View, Image, TouchableOpacity, ScrollView, AsyncStorage, Alert, TextInput, ActivityIndicator, BackHandler } from 'react-native';
 import axios from 'axios';
 // import { Form, TextInput } from 'react-native-autofocus';
 import {Actions} from 'react-native-router-flux';
@@ -37,6 +37,33 @@ export default function ViewNotes(props)
 	const [counter, setCounter] = useState(-1);
 
 	const [saveBtnStatus, setSaveBtnStatus] = useState("not_clicked");
+
+//componentDidMount
+	useEffect(() => 
+	{
+	//to handle back button press
+		BackHandler.addEventListener('hardwareBackPress', backBtnPressed);
+	}, [notesData, notesOldList]);
+
+//componentWillUnmount
+	useEffect(() => 
+	{
+		return () => 
+		{
+		//to handle back button press
+			BackHandler.removeEventListener('hardwareBackPress', backBtnPressed);
+		}
+	}, [notesData, notesOldList]);
+
+//function to run when back btn is pressed
+	const backBtnPressed = () =>
+	{
+		console.log("back btn pressed");
+		
+		setShowIndicator(true);
+		onPressSaveBtnHandler(); //saving the edited data
+		// return true; //prevents the original back action
+	}
 
 //on clicking on add btn
 	const handleAddBtnClick = (idx) =>
@@ -128,8 +155,6 @@ export default function ViewNotes(props)
 	{
 		setShowIndicator(true);
 
-	// useEffect(() => 
- 	// {
 		fetch('http://mngo.in/notes_api/deleteNotesListFromDB.php', 
 		{
 			method: 'POST',
@@ -165,7 +190,6 @@ export default function ViewNotes(props)
 	    	setShowIndicator(false);
 	      	toast("please check your internet connection");
 	    });
-	// }, []);
 	}
 
 //on typing/editing anything in old notes list
@@ -236,13 +260,11 @@ export default function ViewNotes(props)
 				if(listLength == 0)		
 					notesOldList_db = 0;
 
-				// console.log(JSON.stringify(notesOldList_db));
-
-		// //inserting data in DB
+			// //inserting data in DB
 				if(notesData_db == 0 && notesOldList_db == 0)
 				{
 				//redirecting to the home page  
-	 		      Actions.pop();	
+	 		      	Actions.pop();	
 				}
 				else
 				{
@@ -262,9 +284,7 @@ export default function ViewNotes(props)
 						setSaveBtnStatus("not_clicked");
 
 						var data = (response.data);
-						// var userNotesJSON = JSON.stringify(data);
-						// console.log(userNotesJSON);
-
+						
 						if(data == 0)
 						{
 							toast("failed to get your updated data");
@@ -279,9 +299,12 @@ export default function ViewNotes(props)
 							
 							try
 							{
-								var userNotesJSON = JSON.stringify(data);
+							//refreshing the list of notes in Home page	
+								refreshList_a();
 
 							//making cookie of notes of users
+								var userNotesJSON = JSON.stringify(data);
+
 								var user_id = logged_user_id;
 								var user_notes_of = "user_notes_of_" + user_id;
 								AsyncStorage.setItem(user_notes_of, userNotesJSON);

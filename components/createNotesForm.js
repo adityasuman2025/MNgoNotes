@@ -53,7 +53,8 @@ export default function CreateNotesForm(props)
 	{
 		console.log("back btn pressed");
 		
-		doneCreatingNotesBtn();
+		setShowIndicator(true);
+		doneCreatingNotesBtn(); //creating new notes
 		// return true; //prevents the original back action
 	}
 
@@ -206,7 +207,6 @@ export default function CreateNotesForm(props)
 			}
 			else
 			{
-				console.log(notesData);
 				var title = notesData.title;
 				var type = notesData.type;		
 
@@ -221,65 +221,66 @@ export default function CreateNotesForm(props)
 					var user_notes_of = "user_notes_of_" + user_id;
 
 				//posting data to API  
-				        axios.post('http://mngo.in/notes_api/addUserNotesInDB.php', 
-				        {
-				        	user_id: user_id,
-				          	notesData: JSON.stringify(notesData),
-				          	notesList: JSON.stringify(notesList),
-				        })
-				        .then(function(response) 
-				        {
-							setSaveBtnStatus("not_clicked");
-							setShowIndicator(false);
+			        axios.post('http://mngo.in/notes_api/addUserNotesInDB.php', 
+			        {
+			        	user_id: user_id,
+			          	notesData: JSON.stringify(notesData),
+			          	notesList: JSON.stringify(notesList),
+			        })
+			        .then(function(response) 
+			        {
+						setSaveBtnStatus("not_clicked");
+						setShowIndicator(false);
 
-							var data = (response.data).toString();
-							if(data == 0)
+						var data = (response.data).toString();
+						if(data == 0)
+						{
+						toast("failed to create notes");
+						}
+						else if(data == -2)
+						{
+						toast("failed to create notes list");
+						}
+						else if(data == -3)
+						{
+						toast("failed to create notes");
+						}
+						else if(data == -1)
+						{
+						toast("something went wrong");
+						}		          
+						else
+						{
+							setSaveBtnStatus("clicked");
+							try
 							{
-							toast("failed to create notes");
-							}
-							else if(data == -2)
-							{
-							toast("failed to create notes list");
-							}
-							else if(data == -3)
-							{
-							toast("failed to create notes");
-							}
-							else if(data == -1)
-							{
-							toast("something went wrong");
-							}		          
-							else
-							{
-								setSaveBtnStatus("clicked");
-								try
-								{
-								//refreshing the list of notes in Home page
-									refreshList_a();
+							//refreshing the list of notes in Home page
+								refreshList_a();
 
-								//making cookies of updated notes list	
-									var dataString = JSON.stringify((response.data));
-									AsyncStorage.setItem(user_notes_of, dataString);
+							//making cookies of updated notes list	
+								var dataString = JSON.stringify((response.data));
+								AsyncStorage.setItem(user_notes_of, dataString);
 
-							  //redirecting to the home page  
-									Actions.pop();
-								}
-								catch(error)
-								{
-									toast("failed to get your updated data");
-								}
+						  //redirecting to the home page  
+								Actions.pop();
 							}
-				        })
-				        .catch(error => 
-				        {
-				        	setShowIndicator(false);
-				        	setSaveBtnStatus("not_clicked");
-				          	toast("please check your internet connection");
-				        });
+							catch(error)
+							{
+								toast("failed to get your updated data");
+							}
+						}
+			        })
+			        .catch(error => 
+			        {
+			        	setShowIndicator(false);
+			        	setSaveBtnStatus("not_clicked");
+			          	toast("please check your internet connection");
+			        });
 				}
 				else
 				{
-					// Actions.pop();
+					setShowIndicator(false);
+					setSaveBtnStatus("not_clicked");
 					toast("title or type can't be empty");
 				}	
 			}	
