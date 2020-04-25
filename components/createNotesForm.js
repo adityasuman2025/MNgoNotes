@@ -1,5 +1,5 @@
-import React, { useState, useCallback } from 'react';
-import { StyleSheet, Text, View, Image, TouchableOpacity, Picker, ScrollView, AsyncStorage, TextInput, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, Text, View, Image, TouchableOpacity, Picker, ScrollView, AsyncStorage, TextInput, ActivityIndicator, BackHandler } from 'react-native';
 import axios from 'axios';
 // import { Form, TextInput } from 'react-native-autofocus';
 
@@ -30,6 +30,21 @@ export default function CreateNotesForm(props)
 
 	const [showIndicator, setShowIndicator] = useState(false);
 	const [saveBtnStatus, setSaveBtnStatus] = useState("not_clicked");
+
+//componentDidMount
+	useEffect(() => 
+	{
+		console.log('mounted')
+	}, []);
+
+//componentWillUnmount
+	useEffect(() => 
+	{
+		return () => 
+		{
+			console.log('will unmount');
+		}
+	}, []);
 
 //on clicking on add btn
 	const handleAddBtnClick = (idx) =>
