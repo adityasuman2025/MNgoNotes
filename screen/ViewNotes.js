@@ -508,7 +508,6 @@ export default function ViewNotes(props)
 						            placeholderTextColor = "#d8d8d8"
 									value = {title}
 						            selectionColor="#1c313a"
-						            tintColor="#1c313a"
 						            keyboardType="name-phone-pad"
 						            onChangeText={(val) => updateHandlerOfNotesOldList(idx, row_id, val)} 
 						            onSubmitEditing={() => submitEditList(idx)}
