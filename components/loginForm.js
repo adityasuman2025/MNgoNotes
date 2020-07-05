@@ -9,7 +9,7 @@ import { globalStyles } from '../styles/globalStyles';
 
 export default function LoginForm() 
 {
-  const [loginInfo, setLoginInfo] = useState({email: "", password: ""});
+  const [loginInfo, setLoginInfo] = useState({username: "", password: ""});
   const [error, setError] = useState("");
 
   const [loginBtnStatus, setLoginBtnStatus] = useState("not_clicked");
@@ -23,17 +23,17 @@ export default function LoginForm()
     }
     else
     {
-      var email = loginInfo.email.trim();
+      var username = loginInfo.username.trim();
       var password = loginInfo.password.trim();
 
-      if(email != "" && password != "")
+      if(username != "" && password != "")
       {
         setError("");
 
       //posting request to API  
         axios.post('http://mngo.in/notes_api/verifyLogin.php', 
         {
-          email: email,
+          username: username,
           password: password
         })
         .then(function(response) 
@@ -96,13 +96,13 @@ export default function LoginForm()
 
         <View style={globalStyles.formContainer} >
            <TextInput style={globalStyles.inputBox}
-              placeholder="Email"
+              placeholder="Username"
               placeholderTextColor = "#d8d8d8"
               selectionColor="#1c313a"
               keyboardType="email-address"
               autoCapitalize = 'none'
               autoFocus
-              onChangeText={(val) => setLoginInfo({email: val, password: loginInfo.password})}
+              onChangeText={(val) => setLoginInfo({username: val, password: loginInfo.password})}
           />
 
           <TextInput style={globalStyles.inputBox}
@@ -110,8 +110,8 @@ export default function LoginForm()
               placeholderTextColor = "#d8d8d8"
               selectionColor="#1c313a"
               secureTextEntry={true}
-              onChangeText={(val) => setLoginInfo({email: loginInfo.email, password: val})}
-          />   
+              onChangeText={(val) => setLoginInfo({username: loginInfo.username, password: val})}
+          />
         </View>
 
         <TouchableOpacity style={globalStyles.loginSignUpBtn} onPress={loginBtnClickHandler}>

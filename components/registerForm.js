@@ -13,6 +13,18 @@ export default function RegisterForm()
 
   const [regBtnStatus, setRegBtnStatus] = useState("not_clicked");
 
+//function to validate username and email
+  const validateUsername = ( username ) => {
+    var re = /^[a-zA-Z0-9_]*$/;
+      return re.test( username );
+  };
+
+  const validateEmail = ( email ) => {
+    var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+      return re.test(email);
+  };
+
+
 //on clciking on register btn
   const registerBtnClickHandler = () =>
   {
@@ -32,6 +44,17 @@ export default function RegisterForm()
       {
         if(password == conf_pass)
         {
+        //validating username and email
+          if( !validateUsername( username ) ) {
+            setError("username cannot contain symbol and spaces");        
+            return;
+          }
+
+          if( !validateEmail( email ) ) {
+            setError("invalid email id format");        
+            return;
+          }
+
           setRegBtnStatus("clicked");
 
           setError("please wait...");
@@ -65,7 +88,7 @@ export default function RegisterForm()
             }
             else if(data == -2)
             {
-              setError("this email is already registered");
+              setError("this email or username is already registered");
             }
             else //succesfully logged in
             {
