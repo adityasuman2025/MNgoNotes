@@ -281,7 +281,7 @@ export default function CreateNotesForm(props)
 				{
 					setShowIndicator(false);
 					setSaveBtnStatus("not_clicked");
-					toast("title or type can't be empty");
+					// toast("title or type can't be empty");
 				}	
 			}	
 		}

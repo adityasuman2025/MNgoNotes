@@ -99,7 +99,7 @@ export default function LoginForm()
               placeholder="Username"
               placeholderTextColor = "#d8d8d8"
               selectionColor="#1c313a"
-              keyboardType="email-address"
+              // keyboardType="email-address"
               autoCapitalize = 'none'
               autoFocus
               onChangeText={(val) => setLoginInfo({username: val, password: loginInfo.password})}
