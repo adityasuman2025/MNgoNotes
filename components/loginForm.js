@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Image, AsyncStorage, TextInput } from 'react-native';
 import axios from 'axios';
-// import { Form, TextInput } from 'react-native-autofocus';
 
 import {Actions} from 'react-native-router-flux';
 
@@ -62,7 +61,7 @@ export default function LoginForm()
             var toCarry = {};
             toCarry['logged_user_id'] = data;
             
-            Actions.homePage({ toCarry: toCarry });
+            Actions.passCode({ toCarry: toCarry });
           }
         })
         .catch(error => 
