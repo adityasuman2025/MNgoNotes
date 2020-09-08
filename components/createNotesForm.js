@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, Image, TouchableOpacity, Picker, ScrollView, AsyncStorage, TextInput, ActivityIndicator, BackHandler } from 'react-native';
+import { Text, View, Image, TouchableOpacity, Picker, ScrollView, AsyncStorage, TextInput, ActivityIndicator, BackHandler } from 'react-native';
 import axios from 'axios';
-// import { Form, TextInput } from 'react-native-autofocus';
-
 import {Actions} from 'react-native-router-flux';
 
-import { globalStyles } from '../styles/globalStyles';
-import Header from '../components/header';
-
+import { api_url_address } from "../constants";
 import { toast } from '../components/toast';
+
+import { globalStyles } from '../styles/globalStyles';
 
 export default function CreateNotesForm(props) 
 {
@@ -220,9 +218,9 @@ export default function CreateNotesForm(props)
 					var user_id = logged_user_id;
 					var user_notes_of = "user_notes_of_" + user_id;
 
-				//posting data to API  
-			        axios.post('http://mngo.in/notes_api/addUserNotesInDB.php', 
-			        {
+				//posting data to API
+					const api_end_point = api_url_address + "addUserNotesInDB.php";
+					axios.post( api_end_point, {
 			        	user_id: user_id,
 			          	notesData: JSON.stringify(notesData),
 			          	notesList: JSON.stringify(notesList),
