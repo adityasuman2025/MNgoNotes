@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, FlatList, AsyncStorage, Image, ActivityIndicator, BackAndroid } from 'react-native';
 import axios from 'axios';
-
 import {Actions} from 'react-native-router-flux';
 
-import { globalStyles } from '../styles/globalStyles';
 import Header from '../components/header';
 import { toast } from '../components/toast';
+import { api_url_address } from "../constants";
+
+import { globalStyles } from '../styles/globalStyles';
 
 export default function Home({toCarry}) 
 {
@@ -52,15 +53,14 @@ export default function Home({toCarry})
         else
         {
         //posting request to API for getting user notes data from server and storing it as cookies
-          axios.post('http://mngo.in/notes_api/getUserNotes.php', 
-          {
+          const api_end_point = api_url_address + "getUserNotes.php";
+          axios.post( api_end_point, {
             user_id: user_id
           })
           .then(function(response) 
           {
             try
             {
-              var data = response.data;
               var dataString = JSON.stringify((response.data));
               console.log("list loaded from internet");
 
@@ -113,8 +113,8 @@ export default function Home({toCarry})
     toCarry['type'] = item.type;    
 
   //loading notes list data from internet
-    axios.post('http://mngo.in/notes_api/getListDataOfANote.php', 
-    {
+    const api_end_point = api_url_address + "getListDataOfANote.php";
+    axios.post( api_end_point, {
       notes_id: item.notes_id
     })
     .then(function(response) 
@@ -244,10 +244,6 @@ const styles = StyleSheet.create({
 
   box:
   {
-    // backgroundColor: '#1c313a',
-    // borderColor: '#3d4e56',
-    // borderWidth: 1,
-    
     borderBottomColor: '#3d4e56',
     borderBottomWidth: 1,
 

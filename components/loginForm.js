@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Image, AsyncStorage, TextInput } from 'react-native';
 import axios from 'axios';
-
 import {Actions} from 'react-native-router-flux';
+
+import { api_url_address } from "../constants";
 
 import { globalStyles } from '../styles/globalStyles';
 
@@ -30,8 +31,8 @@ export default function LoginForm()
         setError("");
 
       //posting request to API  
-        axios.post('http://mngo.in/notes_api/verifyLogin.php', 
-        {
+        const api_end_point = api_url_address + "verifyLogin.php";
+        axios.post( api_end_point, {
           username: username,
           password: password
         })

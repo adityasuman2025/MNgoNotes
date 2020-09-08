@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, Image, TouchableOpacity, ScrollView, AsyncStorage, Alert, TextInput, ActivityIndicator, BackHandler } from 'react-native';
 import axios from 'axios';
-// import { Form, TextInput } from 'react-native-autofocus';
 import {Actions} from 'react-native-router-flux';
 
-import { globalStyles } from '../styles/globalStyles';
-import Header from '../components/header';
-
+import { api_url_address } from "../constants";
 import { toast } from '../components/toast';
+
+import { globalStyles } from '../styles/globalStyles';
 
 export default function ViewNotes(props) 
 {
@@ -271,8 +270,8 @@ export default function ViewNotes(props)
 					setSaveBtnStatus("clicked");
 					setShowIndicator(true);
 
-					axios.post('http://mngo.in/notes_api/updateNotesList.php', 
-			        {
+					const api_end_point = api_url_address + "updateNotesList.php";
+					axios.post( api_end_point, {
 			        	user_id: logged_user_id,
 			        	notes_id: notes_id,
 			          	notesData_db: JSON.stringify(notesData_db),
@@ -344,8 +343,8 @@ export default function ViewNotes(props)
 	{	
 		setShowIndicator(true);
 
-		axios.post('http://mngo.in/notes_api/deleteANote.php', 
-        {
+		const api_end_point = api_url_address + "deleteANote.php";
+		axios.post( api_end_point, {
         	user_id: logged_user_id,
         	notes_id: notes_id,
         })

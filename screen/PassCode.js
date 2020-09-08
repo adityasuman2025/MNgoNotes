@@ -5,6 +5,7 @@ import {Actions} from 'react-native-router-flux';
 
 import Header from '../components/header';
 import { toast } from '../components/toast';
+import { api_url_address } from "../constants";
 
 import { globalStyles } from '../styles/globalStyles';
 
@@ -50,7 +51,8 @@ export default function PassCode({toCarry})
                         console.log("pass code verified from api");
 
                     //sending rqst to api for verifiying pass code
-                        axios.post('http://mngo.in/notes_api/verifyPassCode.php', {
+                        const api_end_point = api_url_address + "verifyPassCode.php";
+                        axios.post( api_end_point, {
                             user_id: user_id,
                             passcode: enteredPassCode,
                         }).then(function(response) {

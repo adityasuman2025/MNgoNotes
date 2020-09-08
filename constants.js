@@ -1,0 +1,1 @@
+export const api_url_address = "https://mngo.in/notes_api/";

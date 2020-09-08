@@ -3,6 +3,8 @@ import { StyleSheet, Text, View, TouchableOpacity, Image, TextInput } from 'reac
 import axios from 'axios';
 // import { Form, TextInput } from 'react-native-autofocus';
 
+import { api_url_address } from "../constants";
+
 import { globalStyles } from '../styles/globalStyles';
 
 export default function RegisterForm() 
@@ -78,9 +80,9 @@ export default function RegisterForm()
 
           setError("please wait...");
 
-        //posting request to API  
-          axios.post('http://mngo.in/notes_api/registerNewUser.php', 
-          {
+        //posting request to API
+          const api_end_point = api_url_address + "registerNewUser.php";
+          axios.post( api_end_point, {
             username: username,
             email: email,
             password: password,
