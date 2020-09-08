@@ -38,7 +38,7 @@ export default function PassCode({toCarry})
                         setShowIndicator(false); //hiding loading animation
 
                         if( val === enteredPassCode ) {
-                            setError("Wrong Pass Code");
+                            setError("wrong pass code");
                         } else {
                         //redirecting to the home page
                             var toCarry = {};

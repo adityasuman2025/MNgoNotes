@@ -7,7 +7,14 @@ import { globalStyles } from '../styles/globalStyles';
 
 export default function RegisterForm() 
 {
-  const [registerInfo, setRegisterInfo] = useState({username: "", email: "", password: "", conf_pass: ""});
+  const [registerInfo, setRegisterInfo] = useState({
+    username: "", 
+    email: "", 
+    password: "", 
+    conf_pass: "",
+    pass_code: "",
+    conf_pass_code: ""
+  });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -24,7 +31,6 @@ export default function RegisterForm()
       return re.test(email);
   };
 
-
 //on clciking on register btn
   const registerBtnClickHandler = () =>
   {
@@ -34,14 +40,27 @@ export default function RegisterForm()
     }
     else
     {
-      var username = registerInfo.username.trim();
-      var email = registerInfo.email.trim();
+      var username      = registerInfo.username.trim();
+      var email         = registerInfo.email.trim();
       
-      var password = registerInfo.password.trim();
-      var conf_pass = registerInfo.conf_pass.trim();
+      var password      = registerInfo.password.trim();
+      var conf_pass     = registerInfo.conf_pass.trim();
+
+      var pass_code     = registerInfo.pass_code;
+      var conf_pass_code= registerInfo.conf_pass_code;
      
-      if(username != "" && email != "" && password != "" && conf_pass != "")
+      if( username != "" && email != "" && password != "" && conf_pass != "" && pass_code != "" && conf_pass_code != "" )
       {
+        if( pass_code !== conf_pass_code ) {
+          setError("pass code do not match");
+          return;
+        }
+
+        if( pass_code.length !== 4 ) {
+          setError("pass code must be 4 digits long");
+          return;
+        }
+
         if(password == conf_pass)
         {
         //validating username and email
@@ -64,7 +83,8 @@ export default function RegisterForm()
           {
             username: username,
             email: email,
-            password: password
+            password: password,
+            passcode: pass_code,
           })
           .then(function(response) 
           {
@@ -131,7 +151,16 @@ export default function RegisterForm()
               keyboardType="name-phone-pad"
               autoCapitalize = 'none'
               autoFocus
-              onChangeText={(username) => setRegisterInfo({username: username, email: registerInfo.email, password: registerInfo.password, conf_pass: registerInfo.conf_pass})}
+              onChangeText={(username) => 
+                setRegisterInfo({
+                  username: username, 
+                  email: registerInfo.email, 
+                  password: registerInfo.password,
+                  conf_pass: registerInfo.conf_pass,
+                  pass_code: registerInfo.pass_code,
+                  conf_pass_code: registerInfo.conf_pass_code,
+                })
+              }
           />
 
           <TextInput style={globalStyles.inputBox}
@@ -140,7 +169,16 @@ export default function RegisterForm()
               selectionColor="#1c313a"
               keyboardType="email-address"
               autoCapitalize = 'none'
-              onChangeText={(email) => setRegisterInfo({username: registerInfo.username, email: email, password: registerInfo.password, conf_pass: registerInfo.conf_pass})}
+              onChangeText={(email) => 
+                setRegisterInfo({
+                  username: registerInfo.username, 
+                  email: email, 
+                  password: registerInfo.password,
+                  conf_pass: registerInfo.conf_pass,
+                  pass_code: registerInfo.pass_code,
+                  conf_pass_code: registerInfo.conf_pass_code,
+                })
+              }
           />
 
           <TextInput style={globalStyles.inputBox}
@@ -148,7 +186,16 @@ export default function RegisterForm()
               secureTextEntry={true}
               placeholderTextColor = "#d8d8d8"
               selectionColor="#1c313a"
-              onChangeText={(password) => setRegisterInfo({username: registerInfo.username, email: registerInfo.email, password: password, conf_pass: registerInfo.conf_pass})}
+              onChangeText={(password) => 
+                setRegisterInfo({
+                  username: registerInfo.username, 
+                  email: registerInfo.email, 
+                  password: password,
+                  conf_pass: registerInfo.conf_pass,
+                  pass_code: registerInfo.pass_code,
+                  conf_pass_code: registerInfo.conf_pass_code,
+                })
+              }
           />  
 
           <TextInput style={globalStyles.inputBox}
@@ -156,7 +203,54 @@ export default function RegisterForm()
               secureTextEntry={true}
               placeholderTextColor = "#d8d8d8"
               selectionColor="#1c313a"
-              onChangeText={(conf_pass) => setRegisterInfo({username: registerInfo.username, email: registerInfo.email, password: registerInfo.password, conf_pass: conf_pass})}
+              onChangeText={(conf_pass) => 
+                setRegisterInfo({
+                  username: registerInfo.username, 
+                  email: registerInfo.email, 
+                  password: registerInfo.password,
+                  conf_pass: conf_pass,
+                  pass_code: registerInfo.pass_code,
+                  conf_pass_code: registerInfo.conf_pass_code,
+                })
+              }
+          />
+
+          <TextInput style={globalStyles.inputBox}
+              placeholder="Pass Code"
+              secureTextEntry={true}
+              placeholderTextColor = "#d8d8d8"
+              selectionColor="#1c313a"
+              keyboardType="number-pad"
+              maxLength={ 4 }
+              onChangeText={(pass_code) => 
+                setRegisterInfo({
+                  username: registerInfo.username, 
+                  email: registerInfo.email, 
+                  password: registerInfo.password,
+                  conf_pass: registerInfo.conf_pass,
+                  pass_code: pass_code,
+                  conf_pass_code: registerInfo.conf_pass_code,
+                })
+              }
+          />  
+
+          <TextInput style={globalStyles.inputBox}
+              placeholder="Confirm Pass Code"
+              secureTextEntry={true}
+              placeholderTextColor = "#d8d8d8"
+              selectionColor="#1c313a"
+              keyboardType="number-pad"
+              maxLength={ 4 }
+              onChangeText={(conf_pass_code) => 
+                setRegisterInfo({
+                  username: registerInfo.username, 
+                  email: registerInfo.email, 
+                  password: registerInfo.password,
+                  conf_pass: registerInfo.conf_pass,
+                  pass_code: registerInfo.pass_code,
+                  conf_pass_code: conf_pass_code,
+                })
+              }
           />
         </View>
         
