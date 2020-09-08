@@ -38,25 +38,43 @@ export default function PassCode({toCarry})
                         setShowIndicator(false); //hiding loading animation
 
                         if( val === enteredPassCode ) {
-                            setError("wrong pass code");
-                        } else {
                         //redirecting to the home page
                             var toCarry = {};
-                            toCarry['logged_user_id'] = logged_user_id;
+                            toCarry['logged_user_id'] = user_id;
                             
                             Actions.homePage({ toCarry: toCarry });
+                        } else {
+                            setError("wrong pass code");
                         }
                     } else {
                         console.log("pass code verified from api");
+
                     //sending rqst to api for verifiying pass code
-                        // axios.post('http://mngo.in/notes_api/getUserNotes.php', 
-                        // {
-                        //     user_id: user_id
-                        // }).then(function(response) {
-                            
-                        // }).catch(error => {
-                        //     toast("please check your internet connection");
-                        // });
+                        axios.post('http://mngo.in/notes_api/verifyPassCode.php', {
+                            user_id: user_id,
+                            passcode: enteredPassCode,
+                        }).then(function(response) {
+                            setShowIndicator(false); //hiding loading animation
+
+                            var data = (response.data).toString();
+                            if(data == 0) {
+                                setError("wrong pass code");
+                            } else if( data == 1) {
+                            //creating cookie  
+                                AsyncStorage.setItem(user_pass_code_of, enteredPassCode);
+
+                            //redirecting to the home page
+                                var toCarry = {};
+                                toCarry['logged_user_id'] = user_id;
+                                
+                                Actions.homePage({ toCarry: toCarry });
+                            } else {
+                                setError("something went wrong");
+                            }
+                        }).catch(error => {
+                            setShowIndicator(false); //hiding loading animation
+                            toast("please check your internet connection");
+                        });
                     }  
                 });
             }
