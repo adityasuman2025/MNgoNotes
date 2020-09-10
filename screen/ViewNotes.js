@@ -154,8 +154,8 @@ export default function ViewNotes(props)
 	{
 		setShowIndicator(true);
 
-		fetch('http://mngo.in/notes_api/deleteNotesListFromDB.php', 
-		{
+		const api_end_point = api_url_address + "deleteNotesListFromDB.php";
+		fetch( api_end_point, {
 			method: 'POST',
 		  	body: JSON.stringify({row_id: row_id})
 		})
