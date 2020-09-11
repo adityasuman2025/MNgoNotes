@@ -1,10 +1,9 @@
-import React, {useState} from 'react';
+import React from 'react';
 import { StyleSheet, View, TouchableWithoutFeedback, Keyboard, StatusBar } from 'react-native';
 
 import Routes from './routes/routes';
 
-export default function App() 
-{
+export default function App(){
   return (
     <TouchableWithoutFeedback onPress={() => {
     //to remove the keyboard from screen when anywhere instead of textInput field is pressed  
