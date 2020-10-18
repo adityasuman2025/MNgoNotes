@@ -28,7 +28,7 @@ export default function Home({ toCarry }) {
     }
 
     //function to update state (list of notes) from cookies
-    async function loadListFromCookies() {
+    function loadListFromCookies() {
         try {
             //looking for user notes data in cookies
             const user_id = logged_user_id;
@@ -80,7 +80,7 @@ export default function Home({ toCarry }) {
     }
 
     //on clicking on any notes
-    const onClickingOnAnyNotes = (item) => {
+    function onClickingOnAnyNotes(item) {
         setShowIndicator(true);
 
         var toCarry = {};
@@ -97,7 +97,6 @@ export default function Home({ toCarry }) {
             .then(function(response) {
                 setShowIndicator(false);
 
-                var data = response.data;
                 var dataString = JSON.stringify((response.data));
 
                 if (dataString == 0) {
@@ -137,7 +136,7 @@ export default function Home({ toCarry }) {
     }
 
     //on clicking on +/add item btn
-    const createNewNoteBtnClickHandler = () => {
+    function createNewNoteBtnClickHandler() {
         var toCarry = {};
         toCarry['logged_user_id'] = logged_user_id;
 

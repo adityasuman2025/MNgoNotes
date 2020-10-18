@@ -485,11 +485,10 @@ export default function ViewNotes(props) {
 	)
 }
 
-const styles = StyleSheet.create(
-	{
-		deleteNotesImg: {
-			width: 22,
-			height: 22,
-			tintColor: '#1c313a',
-		}
-	});
+const styles = StyleSheet.create({
+	deleteNotesImg: {
+		width: 22,
+		height: 22,
+		tintColor: '#1c313a',
+	}
+});
