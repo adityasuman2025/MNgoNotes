@@ -183,53 +183,56 @@ export default function ViewNotes(props) {
 
     //on clicking on save btn
     function onPressSaveBtnHandler() {
-        if (saveBtnStatus == "clicked") //if btn is already clicked
-        {
+        if (saveBtnStatus == "clicked") {
+            //if btn is already clicked
             toast("hold on!!");
         } else {
             //checking if someone is logged or not
             if (logged_user_id == "") {
                 toast("you are not logged in");
-            }
-            else {
+            } else {
                 //checking if notes title has changed or not
-                var notesData_db = notesData;
+                let notesData_db = notesData;
 
-                var notesTitleChanged = notesData.hasChanged;
-                if (!notesTitleChanged)
-                    var notesData_db = 0;
+                const notesTitleChanged = notesData.hasChanged;
+                if (!notesTitleChanged) {
+                    notesData_db = 0;
+                }
 
                 //deciding list datas which is to be sent to server
                 //for old lists checking if some change has occur // for new list simply pushing it
-                var notesOldList_db = [];
+                let notesOldList_db = [];
 
-                var len = Object.keys(notesOldList).length;
-                for (var i = 0; i < len; i++) {
-                    var id = notesOldList[i].id;
-                    var hasChanged = notesOldList[i].hasChanged;
+                const len = Object.keys(notesOldList).length;
+                for (let i = 0; i < len; i++) {
+                    const id = notesOldList[i].id;
+                    const hasChanged = notesOldList[i].hasChanged;
 
-                    if (parseInt(id) > 0) //if notes list is old
-                    {
+                    if (parseInt(id) > 0) {
+                        //if notes list is old
                         if (hasChanged) {
                             notesOldList_db.push(notesOldList[i]);
                         }
-                    }
-                    else //if notes list is new
-                    {
+                    } else {
+                        //if notes list is new
                         notesOldList_db.push(notesOldList[i]);
                     }
                 }
 
-                var listLength = Object.keys(notesOldList_db).length;
-                if (listLength == 0)
+                const listLength = Object.keys(notesOldList_db).length;
+                if (listLength == 0) {
+                    //no change has occured in notes list data
                     notesOldList_db = 0;
-
-                // //inserting data in DB
-                if (notesData_db == 0 && notesOldList_db == 0) {
-                    //redirecting to the home page
-                    Actions.pop();
                 }
-                else {
+
+                //checking if any change has occured in the note
+                if (notesData_db == 0 && notesOldList_db == 0) {
+                    //no any change has occured in this note
+                    //so redirecting back to home page
+                    Actions.pop();
+                } else {
+                    //some change has occured 
+                    //so sending rqst to api to save it in db
                     setSaveBtnStatus("clicked");
                     setShowIndicator(true);
 
@@ -244,15 +247,12 @@ export default function ViewNotes(props) {
                             setShowIndicator(false);
                             setSaveBtnStatus("not_clicked");
 
-                            var data = (response.data);
-
+                            const data = (response.data);
                             if (data == 0) {
                                 toast("failed to get your updated data");
-                            }
-                            else if (data == -1) {
+                            } else if (data == -1) {
                                 toast("something went wrong");
-                            }
-                            else {
+                            } else {
                                 setSaveBtnStatus("clicked");
 
                                 try {
@@ -260,16 +260,15 @@ export default function ViewNotes(props) {
                                     props.refreshList();
 
                                     //making cookie of notes of users
-                                    var userNotesJSON = JSON.stringify(data);
+                                    const userNotesJSON = JSON.stringify(data);
 
-                                    var user_id = logged_user_id;
-                                    var user_notes_of = "user_notes_of_" + user_id;
+                                    const user_id = logged_user_id;
+                                    const user_notes_of = "user_notes_of_" + user_id;
                                     AsyncStorage.setItem(user_notes_of, userNotesJSON);
 
                                     //redirecting to the home page
                                     Actions.pop();
-                                }
-                                catch (error) {
+                                } catch (error) {
                                     toast("failed to get your updated data");
                                 }
                             }
