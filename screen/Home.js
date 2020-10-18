@@ -24,6 +24,7 @@ export default function Home({ toCarry }) {
 
     //function to refresh the list
     const refreshList = () => {
+        setShowIndicator(true); //displaying loading animation
         fetchListFromAPI();
     }
 
