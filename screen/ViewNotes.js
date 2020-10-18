@@ -231,7 +231,7 @@ export default function ViewNotes(props) {
                     //so redirecting back to home page
                     Actions.pop();
                 } else {
-                    //some change has occured 
+                    //some change has occured
                     //so sending rqst to api to save it in db
                     setSaveBtnStatus("clicked");
                     setShowIndicator(true);
