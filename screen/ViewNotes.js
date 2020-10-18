@@ -11,11 +11,6 @@ import { globalStyles } from '../styles/globalStyles';
 export default function ViewNotes(props) {
     var toCarry = props.toCarry;
 
-    //transffered function from Home screen
-    const refreshList_a = () => {
-        props.refreshList();
-    }
-
     //variables/states
     const logged_user_id = toCarry.logged_user_id;
 
@@ -39,10 +34,8 @@ export default function ViewNotes(props) {
     useEffect(() => {
         //to handle back button press
         BackHandler.addEventListener('hardwareBackPress', backBtnPressed);
-    }, [notesData, notesOldList]);
 
-    //componentWillUnmount
-    useEffect(() => {
+        //componentWillUnmount
         return () => {
             //to handle back button press
             BackHandler.removeEventListener('hardwareBackPress', backBtnPressed);
@@ -50,8 +43,8 @@ export default function ViewNotes(props) {
     }, [notesData, notesOldList]);
 
     //function to run when back btn is pressed
-    const backBtnPressed = () => {
-        console.log("back btn pressed");
+    function backBtnPressed() {
+        console.log("back btn pressed in view notes screen");
 
         setShowIndicator(true);
         onPressSaveBtnHandler(); //saving the edited data
@@ -59,7 +52,7 @@ export default function ViewNotes(props) {
     }
 
     //on clicking on add btn
-    const handleAddBtnClick = (idx) => {
+    function handleAddBtnClick(idx) {
         //creating a new empty json object
         var emptyJSON = {};
         emptyJSON["id"] = counter;
@@ -121,7 +114,7 @@ export default function ViewNotes(props) {
     }
 
     //on clicking on remove btn for a list
-    const removeOldList = (row_id) => {
+    function removeOldList(row_id) {
         if (parseInt(row_id) < 0) //if that textinput is newly added
         {
             //removing that textInput
@@ -139,7 +132,7 @@ export default function ViewNotes(props) {
     }
 
     //on clicking on yes for deleting a notes data list
-    const deleteNoteList = (row_id) => {
+    function deleteNoteList(row_id) {
         setShowIndicator(true);
 
         const api_end_point = api_url_address + "deleteNotesListFromDB.php";
@@ -173,7 +166,7 @@ export default function ViewNotes(props) {
     }
 
     //on typing/editing anything in old notes list
-    const updateHandlerOfNotesOldList = (index, row_id, val) => {
+    function updateHandlerOfNotesOldList(index, row_id, val) {
         var oldJSON = notesOldList[index];
         oldJSON["list_title"] = val;
         oldJSON["hasChanged"] = true;
@@ -189,12 +182,11 @@ export default function ViewNotes(props) {
     }
 
     //on clicking on save btn
-    const onPressSaveBtnHandler = () => {
+    function onPressSaveBtnHandler() {
         if (saveBtnStatus == "clicked") //if btn is already clicked
         {
             toast("hold on!!");
-        }
-        else {
+        } else {
             //checking if someone is logged or not
             if (logged_user_id == "") {
                 toast("you are not logged in");
@@ -265,7 +257,7 @@ export default function ViewNotes(props) {
 
                                 try {
                                     //refreshing the list of notes in Home page
-                                    refreshList_a();
+                                    props.refreshList();
 
                                     //making cookie of notes of users
                                     var userNotesJSON = JSON.stringify(data);
@@ -294,7 +286,7 @@ export default function ViewNotes(props) {
     }
 
     //on clicking on delete notes btn
-    const deleteNotesHandler = () => {
+    function deleteNotesHandler() {
         Alert.alert("Delete Note", "Are you sure to delete " + title + "?", [
             { text: "Yes", onPress: () => deleteNote() },
             { text: "No", onPress: () => console.log("No") }
@@ -302,7 +294,7 @@ export default function ViewNotes(props) {
     }
 
     //on clicking on yes for deleteing note
-    const deleteNote = () => {
+    function deleteNote() {
         setShowIndicator(true);
 
         const api_end_point = api_url_address + "deleteANote.php";
@@ -328,7 +320,7 @@ export default function ViewNotes(props) {
                     }
                     else {
                         //refreshing the list of notes in Home page
-                        refreshList_a();
+                        props.refreshList();
 
                         //making cookie of notes of users
                         var user_id = logged_user_id;
@@ -350,7 +342,7 @@ export default function ViewNotes(props) {
     }
 
     //on clicking on checkbox
-    const checkboxClickHandler = (index, row_id, to_set) => {
+    function checkboxClickHandler(index, row_id, to_set) {
         //marking its checkbox condition
         var oldJSON = notesOldList[index];
         oldJSON["is_active"] = to_set;
@@ -367,11 +359,9 @@ export default function ViewNotes(props) {
     }
 
     //on submit editing in list textInput
-    const submitEditList = (idx) => {
-        var list_len = notesOldList.length;
-
-        if (type == 2) //&& (list_len -1) == idx) //if checkbox
-        {
+    function submitEditList(idx) {
+        if (type == 2) {
+            //if checkbox
             handleAddBtnClick(idx);
         }
     }
