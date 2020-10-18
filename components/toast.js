@@ -2,7 +2,7 @@ import {
     ToastAndroid,
     Platform,
     AlertIOS,
-  } from 'react-native';
+} from 'react-native';
 
 const toast = (msg: string) => {
     if (Platform.OS === 'android') {
