@@ -3,7 +3,7 @@ import { StyleSheet, Text, View, TouchableOpacity, Image, AsyncStorage, TextInpu
 import axios from 'axios';
 import { Actions } from 'react-native-router-flux';
 
-import { auth_api_url_address, api_url_address } from "../constants";
+import { auth_api_url_address } from "../constants";
 
 import { globalStyles } from '../styles/globalStyles';
 
