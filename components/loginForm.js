@@ -3,7 +3,7 @@ import { StyleSheet, Text, View, TouchableOpacity, Image, AsyncStorage, TextInpu
 import axios from 'axios';
 import { Actions } from 'react-native-router-flux';
 
-import { api_url_address } from "../constants";
+import { auth_api_url_address, api_url_address } from "../constants";
 
 import { globalStyles } from '../styles/globalStyles';
 
@@ -27,7 +27,7 @@ export default function LoginForm() {
                 setError("");
 
                 //posting request to API
-                const api_end_point = api_url_address + "verifyLogin.php";
+                const api_end_point = auth_api_url_address + "verify_user.php";
                 axios.post(api_end_point, {
                     username: username,
                     password: password
@@ -35,26 +35,24 @@ export default function LoginForm() {
                     .then(function(response) {
                         setLoginBtnStatus("not_clicked");
 
-                        const data = (response.data).toString();
-                        if (data == 0) {
-                            setShowIndicator(false); //hiding loading animation
-                            setError("login credentials is not correct");
-                        } else if (data == -1) {
-                            setShowIndicator(false); //hiding loading animation
-                            setError("something went wrong");
-                        } else {
+                        const resp = (response.data);
+                        if (resp.statusCode === 200) {
+                            const data = resp.data;
                             //succesfully logged in
                             setShowIndicator(false); //hiding loading animation
                             setLoginBtnStatus("clicked");
 
                             //creating cookie
-                            AsyncStorage.setItem('logged_user_id', data);
+                            AsyncStorage.setItem('logged_user_id', data.id);
 
                             //redirecting to the home page
-                            let toCarry = {};
-                            toCarry['logged_user_id'] = data;
-
+                            let toCarry = {
+                                logged_user_id: data.id,
+                            };
                             Actions.passCode({ toCarry: toCarry });
+                        } else {
+                            setShowIndicator(false); //hiding loading animation
+                            setError(resp.msg);
                         }
                     })
                     .catch(error => {
