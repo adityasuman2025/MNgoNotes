@@ -1,7 +1,9 @@
 import React, { useEffect, useRef } from "react";
-import { View, Image, TouchableOpacity, TextInput } from 'react-native';
+import { View, Image, TouchableOpacity, TextInput, Dimensions } from 'react-native';
 
 import { globalStyles } from '../styles/globalStyles';
+
+const window = Dimensions.get("window");
 
 export default function NotesListDataItem({
     idx,
@@ -52,7 +54,11 @@ export default function NotesListDataItem({
                             :
                             globalStyles.notesListInput_checkbox
                         :
-                        globalStyles.notesListInput_normal
+                        [
+                            globalStyles.notesListInput_normal, {
+                                height: window.height - 100
+                            }
+                        ]
                 }
                 underlineColorAndroid='rgba(0,0,0,0)'
                 placeholder="type text"

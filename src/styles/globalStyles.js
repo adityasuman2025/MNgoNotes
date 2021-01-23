@@ -216,8 +216,6 @@ export const globalStyles = StyleSheet.create({
         paddingHorizontal: 7,
         color: '#d8d8d8',
         fontSize: 15,
-
-        backgroundColor: "red",
     },
 
     notesListInput_checked:
