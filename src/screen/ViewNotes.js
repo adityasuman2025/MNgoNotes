@@ -340,7 +340,12 @@ export default function ViewNotes({
             JSON.stringify(notesListDataDb),
         );
         if (response.statusCode === 200) {
-            refreshList();
+            if (notesDataDb !== 0) {
+                //note title has changed
+                //so updating the notes list in home screen
+                refreshList();
+            }
+
             Actions.pop();
             return;
         } else {

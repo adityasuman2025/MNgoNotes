@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Text, View, Image, TouchableOpacity, ScrollView, TextInput, ActivityIndicator, BackHandler } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { Actions } from 'react-native-router-flux';
-
 import NotesListDataItem from "../components/NotesListDataItem";
 import { toast } from '../components/toast';
 
@@ -181,7 +180,6 @@ export default function CreateNote({
             if (title !== "" && type !== "") {
                 setShowIndicator(true);
                 const loggedUserToken = await getCookieValue("loggedUserToken");
-                console.log("loggedUserToken", loggedUserToken);
                 //sending rqst to api
                 const response = await addUserNotes(
                     loggedUserToken,
@@ -248,7 +246,7 @@ export default function CreateNote({
                             onValueChange={(itemValue, itemIndex) =>
                                 setNotesData({
                                     ...notesData,
-                                    type: itemValue
+                                    type: parseInt(itemValue)
                                 })}
                         >
                             <Picker.Item label="text" value="1" />
@@ -298,6 +296,7 @@ export default function CreateNote({
             </>
         )
     }
+
     //rendering
     return (
         <View style={globalStyles.container} >
