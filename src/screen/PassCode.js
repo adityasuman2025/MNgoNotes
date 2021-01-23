@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, TextInput, ActivityIndicator } from 'react-native';
 
 import Header from '../components/header';
-import { getCookieValue, redirectToHomeScreen } from '../utils';
+import { getCookieValue, makeCookie, redirectToHomeScreen } from '../utils';
 import { VerifyPassCode } from "../apis";
 import { toast } from '../components/toast';
 
@@ -11,7 +11,6 @@ import { globalStyles } from '../styles/globalStyles';
 export default function PassCode() {
     const [loggedUserToken, setLoggedUserToken] = useState(false);
     const [showIndicator, setShowIndicator] = useState(false);
-    const [error, setError] = useState("");
     const [enteredPassCode, setEnteredPassCode] = useState("");
 
     useEffect(() => {
@@ -30,14 +29,12 @@ export default function PassCode() {
 
             //checking if someone is logged or not
             if (loggedUserToken) {
-                var passCodeOf = "passCodeOf_" + loggedUserToken;
+                const passCodeOf = "passCodeOf_" + loggedUserToken;
 
                 //looking for pass code in cookies
                 (async () => {
                     const passCode = await getCookieValue(passCodeOf);
                     if (passCode) {
-                        console.log("pass code verified from cookie");
-
                         if (passCode === enteredPassCode) {
                             redirectToHomeScreen();
                             return;
@@ -45,14 +42,24 @@ export default function PassCode() {
                             toast("Wrong pass code");
                         }
                     } else {
-                        console.log("pass code verified from api");
+                        //sending rqst to api
+                        const response = await VerifyPassCode(loggedUserToken, enteredPassCode);
+                        if (response.statusCode === 200) {
+                            const passCodeCookie = await makeCookie(passCodeOf, enteredPassCode);
+                            if (passCodeCookie) {
+                                redirectToHomeScreen();
+                                return;
+                            } else {
+                                toast("Something went wrong");
+                            }
+                        } else {
+                            toast(response.msg);
+                        }
                     }
                 })();
             } else {
                 toast("You are not logged in");
             }
-        } else {
-            setError("");
         }
 
         setShowIndicator(false);
@@ -80,8 +87,6 @@ export default function PassCode() {
                     maxLength={4}
                     onChangeText={(val) => setEnteredPassCode(val)}
                 />
-
-                <Text style={globalStyles.errorText} >{error}</Text>
             </View>
         </View>
     );
