@@ -6,7 +6,7 @@ import { auth_api_url_address } from "../constants";
 
 import { globalStyles } from '../styles/globalStyles';
 
-export default function RegisterForm() {
+export default function Register() {
     const [registerInfo, setRegisterInfo] = useState({
         username: "",
         name: "",

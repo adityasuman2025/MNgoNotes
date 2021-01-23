@@ -8,7 +8,7 @@ import { toast } from '../components/toast';
 
 import { globalStyles } from '../styles/globalStyles';
 
-export default function CreateNotesForm(props) {
+export default function CreateNote(props) {
     var toCarry = props.toCarry;
 
     //variables/states

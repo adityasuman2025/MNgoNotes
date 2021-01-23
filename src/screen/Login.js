@@ -7,7 +7,7 @@ import { auth_api_url_address } from "../constants";
 
 import { globalStyles } from '../styles/globalStyles';
 
-export default function LoginForm() {
+export default function Login() {
     const [loginInfo, setLoginInfo] = useState({ username: "", password: "" });
     const [error, setError] = useState("");
     const [loginBtnStatus, setLoginBtnStatus] = useState("not_clicked");
@@ -67,8 +67,8 @@ export default function LoginForm() {
     }
 
     //for redirecting to the register page
-    function redirectToRegisterPage() {
-        Actions.registerPage();
+    function redirectToRegisterScreen() {
+        Actions.registerScreen();
     }
 
     //rendering
@@ -87,7 +87,6 @@ export default function LoginForm() {
                         placeholder="Username"
                         placeholderTextColor="#d8d8d8"
                         selectionColor="#1c313a"
-                        // keyboardType="email-address"
                         autoCapitalize='none'
                         autoFocus
                         onChangeText={(val) => setLoginInfo({ username: val, password: loginInfo.password })}
@@ -117,7 +116,7 @@ export default function LoginForm() {
 
             <View style={styles.signupTextCont}>
                 <Text style={styles.signupText}>Don't have an account yet?</Text>
-                <TouchableOpacity onPress={redirectToRegisterPage} >
+                <TouchableOpacity onPress={redirectToRegisterScreen} >
                     <Text style={styles.signupButton}> Signup</Text>
                 </TouchableOpacity>
             </View>
