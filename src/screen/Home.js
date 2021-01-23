@@ -68,8 +68,6 @@ export default function Home() {
 
     //on clicking on any notes
     function onClickingOnAnyNotes(item) {
-        setShowIndicator(true);
-
         if (item.encrypted_notes_id) {
             redirectToViewNotesScreen({
                 notesId: item.encrypted_notes_id,

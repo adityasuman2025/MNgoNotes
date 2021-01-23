@@ -1,98 +1,136 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, Image, TouchableOpacity, ScrollView, AsyncStorage, Alert, TextInput, ActivityIndicator, BackHandler } from 'react-native';
-import axios from 'axios';
-import { Actions } from 'react-native-router-flux';
+import { StyleSheet, Text, View, Image, TouchableOpacity, ScrollView, Alert, TextInput, ActivityIndicator, BackHandler } from 'react-native';
 
-import { api_url_address } from "../constants";
+import { getListDataOfANote, deleteNotesListDataItem, deleteANote, updateNotesListData } from "../apis";
+import { getCookieValue } from '../utils';
+import NotesListDataItem from "../components/NotesListDataItem";
 import { toast } from '../components/toast';
 
 import { globalStyles } from '../styles/globalStyles';
 
 export default function ViewNotes({
-    notesId,
+    notesId: encryptedNotesId,
     refreshList,
 }) {
-    const [notesData, setNotesData] = useState({ title: title, hasChanged: false });
+    const [loggedUserToken, setLoggedUserToken] = useState(null);
 
-    const notesOldList_from_home = toCarry.notesOldList;
-    const [notesOldList, setNotesOldList] = useState(JSON.parse(notesOldList_from_home));
+    const [notesType, setNotesType] = useState(null);
+    const [notesData, setNotesData] = useState({ title: "", hasChanged: false });
 
+    const [notesListData, setNotesListData] = useState([]);
     const [tempNotesOldList, setTempNotesOldList] = useState([]);
-
-    const [showIndicator, setShowIndicator] = useState(false);
     const [counter, setCounter] = useState(-1);
 
-    const [saveBtnStatus, setSaveBtnStatus] = useState("not_clicked");
+    const [inputFieldPositionToFocusOn, setInputFieldPositionToFocusOn] = useState(-1);
 
-    //componentDidMount
+    const [deleteWhat, setDeleteWhat] = useState(null);
+    const [notesListDataItemToDelete, setNotesListDataItemToDelete] = useState(null);
+
+    const [showIndicator, setShowIndicator] = useState(true);
+
     useEffect(() => {
         //to handle back button press
         BackHandler.addEventListener('hardwareBackPress', backBtnPressed);
 
-        //componentWillUnmount
+        (async () => {
+            const loggedUserTokenCookie = await getCookieValue("loggedUserToken");
+            if (loggedUserTokenCookie) {
+                setLoggedUserToken(loggedUserTokenCookie);
+                await fetchNotesListData(loggedUserTokenCookie, encryptedNotesId);
+            }
+        })();
+
         return () => {
             //to handle back button press
             BackHandler.removeEventListener('hardwareBackPress', backBtnPressed);
         }
-    }, [notesData, notesOldList]);
+    }, []);
 
     //function to run when back btn is pressed
     function backBtnPressed() {
         console.log("back btn pressed in view notes screen");
 
         setShowIndicator(true);
-        onPressSaveBtnHandler(); //saving the edited data
+        handleSaveNoteClick(); //saving the edited data
         // return true; //prevents the original back action
     }
 
-    //on clicking on add btn
+    //function to handle when any note item is clicked on
+    async function fetchNotesListData(loggedUserToken, encryptedNotesId) {
+        //sending rqst to api
+        const response = await getListDataOfANote(loggedUserToken, encryptedNotesId);
+        if (response.statusCode === 200) {
+            const data = response.data;
+            if (data) {
+                const title = data.title;
+                const type = data.type;
+                const notesList = data.notes_list || [];
+                setNotesData({
+                    "title": title,
+                    "hasChanged": false,
+                });
+                setNotesType(parseInt(type));
+                setNotesListData(notesList);
+            } else {
+                toast("Something went wrong");
+            }
+        } else {
+            toast(response.msg);
+        }
+
+        setShowIndicator(false);
+    }
+
+    //function to handle when add item btn is clicked on
     function handleAddBtnClick(idx) {
+        idx = parseInt(idx);
+
         //creating a new empty json object
-        var emptyJSON = {};
+        let emptyJSON = {};
         emptyJSON["id"] = counter;
         emptyJSON["position"] = "";
         emptyJSON["list_title"] = "";
-        emptyJSON["type"] = type;
+        emptyJSON["type"] = notesType;
         emptyJSON["is_active"] = 1;
         emptyJSON["hasChanged"] = true;
 
         //storing the noteslist	data in a temp array
-        var tempNotesList = [...notesOldList];
-        var len = Object.keys(tempNotesList).length;
+        let tempNotesList = [...notesListData];
+        let len = Object.keys(tempNotesList).length;
 
-        var newNotesList = [];
-
+        let newNotesList = [];
+        let newPosition;
         //if to be added at beginning
-        if (idx == -1) {
-            if (len == 0) //if list is empty
-                var nextPosition = 100000;
-            else
-                var nextPosition = tempNotesList[0]["position"];
+        if (idx === -1) {
+            let nextPosition = 100000; //if list is empty
+            if (len !== 0) {
+                //if list is not empty
+                nextPosition = tempNotesList[0]["position"];
+            }
 
-            var newPosition = parseInt((parseInt(0) + parseInt(nextPosition)) / 2);
+            newPosition = parseInt((parseInt(0) + parseInt(nextPosition)) / 2);
 
             emptyJSON["position"] = newPosition;
             newNotesList.push(emptyJSON);
         }
 
         //looping through the temp notes list to insert new empty json at desired position
-        for (var i = 0; i < len; i++) {
-            var thisArray = tempNotesList[i];
+        for (let i = 0; i < len; i++) {
+            let thisArray = tempNotesList[i];
             newNotesList.push(thisArray);
 
-            if (i == idx)// inserting the new empty json at desired position
-            {
-                if (i == len - 1) //if last element
-                {
-                    var newPosition = parseInt(parseInt(thisArray["position"]) + parseInt(100000));
+            if (i === idx) {
+                // inserting the new empty json at desired position
+                if (i === len - 1) {
+                    //if last element
+                    newPosition = parseInt(parseInt(thisArray["position"]) + parseInt(100000));
                     emptyJSON["position"] = newPosition;
-                }
-                else //if any between elements
-                {
-                    var thisPosition = thisArray["position"];
-                    var nextPosition = tempNotesList[i + 1]["position"];
+                } else {
+                    //if any between elements
+                    let thisPosition = thisArray["position"];
+                    let nextPosition = tempNotesList[i + 1]["position"];
 
-                    var newPosition = parseInt((parseInt(thisPosition) + parseInt(nextPosition)) / 2);
+                    newPosition = parseInt((parseInt(thisPosition) + parseInt(nextPosition)) / 2);
                     emptyJSON["position"] = newPosition;
                 }
 
@@ -100,370 +138,349 @@ export default function ViewNotes({
             }
         }
 
-        // updating the state
-        setNotesOldList([]);
-        setNotesOldList(newNotesList);
+        //updating the state
+        setInputFieldPositionToFocusOn(newPosition);
+        setNotesListData([]);
+        setNotesListData(newNotesList);
 
         setCounter(counter - 1);
     }
 
-    //on clicking on remove btn for a list
-    function removeOldList(row_id) {
-        if (parseInt(row_id) < 0) //if that textinput is newly added
-        {
-            //removing that textInput
-            setNotesOldList((prevNotesOldList) => {
-                return prevNotesOldList.filter(newNotesOldList => newNotesOldList.id != row_id)
-            });
-        }
-        else //if that textinput is old fetched from database
-        {
-            Alert.alert("Delete Note Data", "Are you sure to delete ?", [
-                { text: "Yes", onPress: () => deleteNoteList(row_id) },
-                { text: "No", onPress: () => console.log("No") }
-            ]);
-        }
-    }
+    //function to handle when checkbox icon is clicked
+    function hanldeCheckBoxClick(idx, rowId, toSet) {
+        rowId = parseInt(rowId);
 
-    //on clicking on yes for deleting a notes data list
-    function deleteNoteList(row_id) {
-        setShowIndicator(true);
-
-        const api_end_point = api_url_address + "deleteNotesListFromDB.php";
-        fetch(api_end_point, {
-            method: 'POST',
-            body: JSON.stringify({ row_id: row_id })
-        })
-            .then((response) => response.json())
-            .then((responseJson) => {
-                setShowIndicator(false);
-                if (responseJson == 1) {
-                    //removing that textInput
-                    setNotesOldList((prevNotesOldList) => {
-                        return prevNotesOldList.filter(newNotesOldList => newNotesOldList.id != row_id)
-                    });
-                }
-                else if (responseJson == 0) {
-                    toast("failed to delete");
-                }
-                else if (responseJson == -1) {
-                    toast("something went wrong");
-                }
-                else {
-                    toast("unknown error");
-                }
-            })
-            .catch((error) => {
-                setShowIndicator(false);
-                toast("please check your internet connection");
-            });
-    }
-
-    //on typing/editing anything in old notes list
-    function updateHandlerOfNotesOldList(index, row_id, val) {
-        var oldJSON = notesOldList[index];
-        oldJSON["list_title"] = val;
+        //marking its checkbox condition
+        var oldJSON = notesListData[idx];
+        oldJSON["is_active"] = toSet;
         oldJSON["hasChanged"] = true;
 
         //updating the textInputs according to the latest user input
-        setTempNotesOldList(notesOldList);
+        setTempNotesOldList(notesListData);
         setTempNotesOldList((prevNotesOldList) => {
-            return prevNotesOldList.filter(newNotesOldList => parseInt(newNotesOldList.id) != row_id)
+            return prevNotesOldList.filter(newNotesOldList => parseInt(newNotesOldList.id) !== rowId)
         });
 
         //i don't know how its happening, but its really happening.
         //that textinput remains at the same place and we can alwo type there freely
     }
 
-    //on clicking on save btn
-    function onPressSaveBtnHandler() {
-        if (saveBtnStatus == "clicked") {
-            //if btn is already clicked
-            toast("hold on!!");
+    //function to handle when remove icon is clicked
+    function handleRemoveClick(idx, rowId) {
+        //if that textinput is newly added
+        rowId = parseInt(rowId);
+        if (rowId < 0) {
+            //removing that textInput
+            setNotesListData((prevNotesOldList) => {
+                return prevNotesOldList.filter(newNotesOldList => newNotesOldList.id !== rowId);
+            });
         } else {
-            //checking if someone is logged or not
-            if (logged_user_id == "") {
-                toast("you are not logged in");
+            //if that textinput is old fetched from database
+            setNotesListDataItemToDelete(rowId);
+            setDeleteWhat("notesListDataItem");
+
+            setConfirmDialogText("Are you sure to delete this item?");
+            setIsConfirmDialogOpen(true);
+        }
+    }
+
+    //function to delete a notes list data  item
+    async function deleteANotesListDataItem(rowId) {
+        rowId = parseInt(rowId);
+        if (rowId) {
+            setShowIndicator(true);
+
+            //sending rqst to api
+            const response = await deleteNotesListDataItem(getCookieValue("loggedUserToken"), rowId);
+            if (response.statusCode === 200) {
+                setNotesListData((prevNotesOldList) => {
+                    return prevNotesOldList.filter(newNotesOldList => newNotesOldList.id != rowId); // !== is not working
+                });
             } else {
-                //checking if notes title has changed or not
-                let notesData_db = notesData;
+                makeSnackBar(response.msg);
+            }
 
-                const notesTitleChanged = notesData.hasChanged;
-                if (!notesTitleChanged) {
-                    notesData_db = 0;
-                }
+            setShowIndicator(false);
+        }
+    }
 
-                //deciding list datas which is to be sent to server
-                //for old lists checking if some change has occur // for new list simply pushing it
-                let notesOldList_db = [];
+    //function to handle when notes data list input field is changed
+    function handleInputFieldChange(idx, rowId, value) {
+        rowId = parseInt(rowId);
 
-                const len = Object.keys(notesOldList).length;
-                for (let i = 0; i < len; i++) {
-                    const id = notesOldList[i].id;
-                    const hasChanged = notesOldList[i].hasChanged;
+        var oldJSON = notesListData[idx];
+        oldJSON["list_title"] = value;
+        oldJSON["hasChanged"] = true;
 
-                    if (parseInt(id) > 0) {
-                        //if notes list is old
-                        if (hasChanged) {
-                            notesOldList_db.push(notesOldList[i]);
-                        }
-                    } else {
-                        //if notes list is new
-                        notesOldList_db.push(notesOldList[i]);
-                    }
-                }
+        //updating the textInputs according to the latest user input
+        setTempNotesOldList(notesListData);
+        setTempNotesOldList((prevNotesOldList) => {
+            return prevNotesOldList.filter(newNotesOldList => parseInt(newNotesOldList.id) !== rowId)
+        });
+        //i don't know how its happening, but its really happening.
+        //that textinput remains at the same place and we can alwo type there freely
+    }
 
-                const listLength = Object.keys(notesOldList_db).length;
-                if (listLength == 0) {
-                    //no change has occured in notes list data
-                    notesOldList_db = 0;
-                }
+    //function to hadle when enter is pressed in any input field
+    function handleSubmitInputField(e, idx) {
+        e.preventDefault();
 
-                //checking if any change has occured in the note
-                if (notesData_db == 0 && notesOldList_db == 0) {
-                    //no any change has occured in this note
-                    //so redirecting back to home page
-                    Actions.pop();
+        if (notesType === 2) {
+            //if type is checkbox
+            handleAddBtnClick(idx);
+        }
+    }
+
+    //function to handle when delete note btn is pressed
+    function handleDeleteNoteClick() {
+        setDeleteWhat("note");
+
+        setConfirmDialogText("Are you sure to delete " + notesData.title + "?");
+        setIsConfirmDialogOpen(true);
+    }
+
+    //function to delete a note
+    async function deleteNote() {
+        setShowIndicator(true);
+
+        //sending rqst to api
+        const response = await deleteANote(getCookieValue("loggedUserToken"), encryptedNotesId);
+        if (response.statusCode === 200) {
+            // props.history.goBack(); //going back to user's home page
+            setRedirectToUserHome(true);
+            return;
+        } else {
+            makeSnackBar(response.msg);
+        }
+
+        setShowIndicator(false);
+    }
+
+    //function to close the confirm dialog box
+    function handleConfirmDialogClose() {
+        setIsConfirmDialogOpen(false);
+
+        //if confirm dialog has appeared for confirm saving change
+        if (deleteWhat === "backPressHandler") {
+            window.history.pushState(null, null, window.location.pathname);
+            setBackbuttonPress(false);
+        }
+    }
+
+    //funtion to confirm the confirm dialog //when yes is pressed
+    function handleConfirmDialogConfirm() {
+        setIsConfirmDialogOpen(false);
+
+        if (deleteWhat === "notesListDataItem") {
+            deleteANotesListDataItem(notesListDataItemToDelete);
+        } else if (deleteWhat === "note") {
+            deleteNote();
+        } else if (deleteWhat === "backPressHandler") {
+            //if confirm dialog has appeared for confirm saving change
+            //going back
+            setBackbuttonPress(true);
+            handleSaveNoteClick();
+        }
+    }
+
+    //function to handle when save btn is clicked on
+    async function handleSaveNoteClick(action) {
+        if (!showIndicator) {
+            //checking is some change has been done in notes data or not
+            const hasChanged = await checkIfNotesDataIsChanged();
+            if (hasChanged === false) {
+                //no any change has occured
+                //checking if saving using shortcut key
+                if (action === "shortcutKey") {
+                    makeSnackBar("Nothing to save", "info");
                 } else {
-                    //some change has occured
-                    //so sending rqst to api to save it in db
-                    setSaveBtnStatus("clicked");
-                    setShowIndicator(true);
+                    //redirecting back to user's home page
+                    // props.history.goBack();
+                    setRedirectToUserHome(true);
+                    return;
+                }
+            } else {
+                //some changes has occured
+                try {
+                    const notesDataDb = hasChanged.notesDataDb;
+                    const notesListDataDb = hasChanged.notesListDataDb;
 
-                    const api_end_point = api_url_address + "updateNotesList.php";
-                    axios.post(api_end_point, {
-                        user_id: logged_user_id,
-                        notes_id: notes_id,
-                        notesData_db: JSON.stringify(notesData_db),
-                        notesOldList_db: JSON.stringify(notesOldList_db),
-                    })
-                        .then(function(response) {
-                            setShowIndicator(false);
-                            setSaveBtnStatus("not_clicked");
-
-                            const data = (response.data);
-                            if (data == 0) {
-                                toast("failed to get your updated data");
-                            } else if (data == -1) {
-                                toast("something went wrong");
-                            } else {
-                                setSaveBtnStatus("clicked");
-
-                                try {
-                                    //refreshing the list of notes in Home page
-                                    props.refreshList();
-
-                                    //making cookie of notes of users
-                                    const userNotesJSON = JSON.stringify(data);
-
-                                    const user_id = logged_user_id;
-                                    const user_notes_of = "user_notes_of_" + user_id;
-                                    AsyncStorage.setItem(user_notes_of, userNotesJSON);
-
-                                    //redirecting to the home page
-                                    Actions.pop();
-                                } catch (error) {
-                                    toast("failed to get your updated data");
-                                }
-                            }
-                        })
-                        .catch(error => {
-                            setShowIndicator(false);
-                            setSaveBtnStatus("not_clicked");
-
-                            toast("please check your internet connection");
-                        });
+                    //sending rqst to api
+                    if (notesDataDb || notesListDataDb) {
+                        setShowIndicator(true);
+                        updateANotesListData(notesDataDb, notesListDataDb, action);
+                    }
+                } catch {
+                    makeSnackBar("Something went wrong");
                 }
             }
         }
     }
 
-    //on clicking on delete notes btn
-    function deleteNotesHandler() {
-        Alert.alert("Delete Note", "Are you sure to delete " + title + "?", [
-            { text: "Yes", onPress: () => deleteNote() },
-            { text: "No", onPress: () => console.log("No") }
-        ]);
-    }
+    //function to check is changes in notes data has taken place
+    async function checkIfNotesDataIsChanged() {
+        //checking if notes title has changed or not
+        let notesDataDb = notesData;
 
-    //on clicking on yes for deleteing note
-    function deleteNote() {
-        setShowIndicator(true);
-
-        const api_end_point = api_url_address + "deleteANote.php";
-        axios.post(api_end_point, {
-            user_id: logged_user_id,
-            notes_id: notes_id,
-        })
-            .then(function(response) {
-                setShowIndicator(false);
-
-                try {
-                    var data = (response.data);
-                    var userNotesJSON = JSON.stringify(data);
-
-                    if (userNotesJSON == 0) {
-                        toast("failed to delete the note");
-                    }
-                    else if (userNotesJSON == -1) {
-                        toast("something went wrong");
-                    }
-                    else if (userNotesJSON == -2) {
-                        toast("failed to get your updated data");
-                    }
-                    else {
-                        //refreshing the list of notes in Home page
-                        props.refreshList();
-
-                        //making cookie of notes of users
-                        var user_id = logged_user_id;
-                        var user_notes_of = "user_notes_of_" + user_id;
-                        AsyncStorage.setItem(user_notes_of, userNotesJSON);
-
-                        //redirecting to the home page
-                        Actions.pop();
-                    }
-                }
-                catch (error) {
-                    toast("failed to get your updated data");
-                }
-            })
-            .catch(error => {
-                setShowIndicator(false);
-                toast("please check your internet connection");
-            });
-    }
-
-    //on clicking on checkbox
-    function checkboxClickHandler(index, row_id, to_set) {
-        //marking its checkbox condition
-        var oldJSON = notesOldList[index];
-        oldJSON["is_active"] = to_set;
-        oldJSON["hasChanged"] = true;
-
-        //updating the textInputs according to the latest user input
-        setTempNotesOldList(notesOldList);
-        setTempNotesOldList((prevNotesOldList) => {
-            return prevNotesOldList.filter(newNotesOldList => parseInt(newNotesOldList.id) != row_id)
-        });
-
-        //i don't know how its happening, but its really happening.
-        //that textinput remains at the same place and we can alwo type there freely
-    }
-
-    //on submit editing in list textInput
-    function submitEditList(idx) {
-        if (type == 2) {
-            //if checkbox
-            handleAddBtnClick(idx);
+        let notesTitleChanged = notesData.hasChanged;
+        if (!notesTitleChanged) {
+            notesDataDb = 0;
         }
+
+        //deciding list datas which is to be sent to server
+        //for old lists checking if some change has occur // for new list simply pushing it
+        let notesListDataDb = [];
+
+        let len = Object.keys(notesListData).length;
+        for (let i = 0; i < len; i++) {
+            let id = notesListData[i].id;
+            let hasChanged = notesListData[i].hasChanged;
+
+            if (parseInt(id) > 0) {
+                //if notes list is old
+                if (hasChanged) {
+                    notesListDataDb.push(notesListData[i]);
+                }
+            } else {
+                //if notes list is new
+                notesListDataDb.push(notesListData[i]);
+            }
+        }
+
+        var listLength = Object.keys(notesListDataDb).length;
+        if (listLength === 0) {
+            notesListDataDb = 0;
+        }
+
+        //checking is some change has been done in notes data or not
+        if (notesDataDb === 0 && notesListDataDb === 0) {
+            //no any change is done by user
+            return false;
+        } else {
+            //some change has occured
+            return {
+                "notesDataDb": notesDataDb,
+                "notesListDataDb": notesListDataDb,
+            }
+        }
+    }
+
+    //function to handle update notes list data
+    async function updateANotesListData(notesDataDb, notesListDataDb, action) {
+        //sending rqst to api
+        const response = await updateNotesListData(
+            getCookieValue("loggedUserToken"),
+            encryptedNotesId,
+            JSON.stringify(notesDataDb),
+            JSON.stringify(notesListDataDb),
+        );
+        if (response.statusCode === 200) {
+            //checking if saving using shortcut key
+            if (action === "shortcutKey") {
+                setTimeout(function() {
+                    window.location.reload();
+                }, 500);
+            } else {
+                //going back to user's home page after .7s
+                //so that success toast can be visible for some time
+                setTimeout(function() {
+                    // props.history.goBack();
+                    setRedirectToUserHome(true);
+                    return;
+                }, 700);
+            }
+        } else {
+            makeSnackBar(response.msg);
+            setShowIndicator(false);
+        }
+    }
+
+    function renderPageContent() {
+        return (
+            <>
+                <View style={globalStyles.notesHeader} >
+                    <TouchableOpacity
+                        style={globalStyles.createNotesBtn}
+                        onPress={handleSaveNoteClick}
+                    >
+                        <Image source={require('../img/save2.png')} style={globalStyles.goBackImg}
+                        />
+                    </TouchableOpacity>
+
+                    <View style={globalStyles.titleFormContainer}>
+                        <TextInput
+                            style={globalStyles.notesInputBox}
+                            underlineColorAndroid='rgba(0,0,0,0)'
+                            placeholder="Title"
+                            placeholderTextColor="#d8d8d8"
+                            selectionColor="#1c313a"
+                            keyboardType="name-phone-pad"
+                            autoCapitalize="words"
+                            value={notesData.title}
+                            onChangeText={(val) => setNotesData({
+                                ...notesData,
+                                title: val,
+                            })}
+                        />
+                    </View>
+
+                    <TouchableOpacity onPress={handleDeleteNoteClick}>
+                        <Image source={require('../img/delete.png')} style={styles.deleteNotesImg} />
+                    </TouchableOpacity>
+                </View>
+
+                <View style={globalStyles.notesFormContainer} >
+                    {
+                        notesType == 2 ?
+                            <View style={globalStyles.picker_and_addListBtn} >
+                                <TouchableOpacity
+                                    style={globalStyles.addNotesListBtn}
+                                    onPress={() => handleAddBtnClick(-1)}
+                                >
+                                    <Image source={require('../img/add1.png')} style={globalStyles.addBtnText} />
+                                    <Text style={{ color: '#d8d8d8' }} > Add Item</Text>
+                                </TouchableOpacity>
+                            </View>
+                            : null
+                    }
+
+                    <View style={globalStyles.formContainer_scroll}>
+                        <ScrollView style={globalStyles.listNotesFieldContainer}>
+                            {
+                                // console.log("notesListData", notesListData);
+                                notesListData.map((item, idx) => (
+                                    <NotesListDataItem
+                                        key={idx}
+                                        idx={idx}
+                                        notesType={notesType}
+                                        positionToFocus={inputFieldPositionToFocusOn}
+                                        rowId={parseInt(item.id)}
+                                        isActive={parseInt(item.is_active)}
+                                        position={parseInt(item.position)}
+                                        title={item.list_title}
+                                        onCheckBoxClick={hanldeCheckBoxClick}
+                                        onRemoveClick={handleRemoveClick}
+                                        onInputFieldChange={handleInputFieldChange}
+                                        onSubmitInputField={handleSubmitInputField}
+                                    />
+                                ))
+                            }
+                        </ScrollView>
+                    </View>
+                </View>
+            </>
+        )
     }
 
     //rendering
     return (
         <View style={globalStyles.container}>
-            <View style={globalStyles.notesHeader} >
-                <TouchableOpacity style={globalStyles.createNotesBtn} onPress={() => onPressSaveBtnHandler()}>
-                    <Image
-                        source={require('../img/save2.png')}
-                        style={globalStyles.goBackImg}
-                    />
-                </TouchableOpacity>
-
-                <View style={globalStyles.titleFormContainer}>
-                    <TextInput
-                        style={globalStyles.notesInputBox}
-                        underlineColorAndroid='rgba(0,0,0,0)'
-                        placeholder="Title"
-                        placeholderTextColor="#d8d8d8"
-                        selectionColor="#1c313a"
-                        keyboardType="name-phone-pad"
-                        autoCapitalize="words"
-                        value={notesData.title}
-                        onChangeText={(val) => setNotesData({ title: val, hasChanged: true })}
-                    />
-                </View>
-
-                <TouchableOpacity onPress={() => deleteNotesHandler()}>
-                    <Image source={require('../img/delete.png')} style={styles.deleteNotesImg} />
-                </TouchableOpacity>
-            </View>
             {
                 showIndicator ?
                     <ActivityIndicator size="large" color="#d8d8d8" />
-                    : null
+                    :
+                    renderPageContent()
             }
-            <View style={globalStyles.notesFormContainer} >
-                {
-                    type == 2 ?
-                        <View style={globalStyles.picker_and_addListBtn} >
-                            <TouchableOpacity style={globalStyles.addNotesListBtn} onPress={() => handleAddBtnClick(-1)}>
-                                <Image source={require('../img/add1.png')} style={globalStyles.addBtnText} />
-                                <Text style={{ color: '#d8d8d8' }} > Add Item</Text>
-                            </TouchableOpacity>
-                        </View>
-                        : null
-                }
-
-                <View style={globalStyles.formContainer_scroll}>
-                    <ScrollView style={globalStyles.listNotesFieldContainer}>
-                        {
-                            notesOldList.map((item, idx) => {
-                                var row_id = item.id;
-                                var is_active = item.is_active;
-                                var title = (item.list_title).toString();
-                                // var res = title.replace(/\\n/g, "\n"); // in db \n goes as \\n becoz of mysqli_real_escape_string so making it \n once again
-
-                                var html = [];
-                                if (type == 2) //if type is checkbox showing checkbox image
-                                {
-                                    var to_set = is_active == 1 ? 2 : 1;
-                                    html.push(
-                                        <TouchableOpacity key={idx} onPress={() => checkboxClickHandler(idx, row_id, to_set)} >
-                                            <Image
-                                                source={is_active == 1 ? require('../img/unchecked.png') : require('../img/checked.png')}
-                                                style={globalStyles.notesCheckedImg}
-                                            />
-                                        </TouchableOpacity>
-                                    );
-                                }
-
-                                return (
-                                    <View key={idx} style={globalStyles.listNotesFields} >
-                                        {html}
-
-                                        <TextInput
-                                            multiline={type == 2 ? false : true}
-                                            style={(type == 2) ? (is_active == 2) ? globalStyles.notesListInput_checked : globalStyles.notesListInput_checkbox : globalStyles.notesListInput_normal}
-                                            underlineColorAndroid='rgba(0,0,0,0)'
-                                            placeholder="type text"
-                                            placeholderTextColor="#d8d8d8"
-                                            value={title}
-                                            selectionColor="#1c313a"
-                                            keyboardType="name-phone-pad"
-                                            onChangeText={(val) => updateHandlerOfNotesOldList(idx, row_id, val)}
-                                            onSubmitEditing={() => submitEditList(idx)}
-                                        // autoFocus //to auto focus on creation of its new element
-                                        />
-
-                                        {
-                                            //if types is checkbox then showing delete/close icon
-                                            type == 2 ?
-                                                <TouchableOpacity onPress={() => removeOldList(row_id)} >
-                                                    <Image
-                                                        source={require('../img/cross2.png')}
-                                                        style={globalStyles.notesFieldCloseImg}
-                                                    />
-                                                </TouchableOpacity>
-                                                : null
-                                        }
-                                    </View>
-                                )
-                            })
-                        }
-                    </ScrollView>
-                </View>
-            </View>
         </View>
     )
 }
