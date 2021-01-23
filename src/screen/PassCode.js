@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, TextInput, ActivityIndicator } from 'react-native';
 
-import Header from '../components/header';
+import Header from '../components/Header';
 import { getCookieValue, makeCookie, redirectToHomeScreen } from '../utils';
 import { VerifyPassCode } from "../apis";
-import { toast } from '../components/toast';
+import { toast } from '../components/Toast';
 
 import { globalStyles } from '../styles/globalStyles';
 

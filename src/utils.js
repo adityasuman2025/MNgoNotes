@@ -67,3 +67,15 @@ export function validateContactNo(number) {
     var re = /^[0-9]*$/;
     return re.test(number);
 };
+
+//onc clinking on yes btn
+export function logOut() {
+    try {
+        AsyncStorage.removeItem('loggedUserToken');
+        Actions.loginScreen();
+
+        return true;
+    } catch {
+        return false
+    }
+}

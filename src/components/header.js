@@ -1,7 +1,7 @@
 import React from 'react';
-import { StyleSheet, Text, View, Image, TouchableOpacity, AsyncStorage, Alert } from 'react-native';
+import { StyleSheet, Text, View, Image, TouchableOpacity, Alert } from 'react-native';
 
-import { Actions } from 'react-native-router-flux';
+import { logOut } from "../utils";
 
 export default function Header({ toCarry }) {
 	const title = toCarry.title;
@@ -12,22 +12,6 @@ export default function Header({ toCarry }) {
 			{ text: "Yes", onPress: () => logOut() },
 			{ text: "No", onPress: () => console.log("No") }
 		]);
-	}
-
-	//onc clinking on yes btn
-	const logOut = () => {
-		AsyncStorage.getItem('logged_user_id').then((val) => {
-			if (val != null) //if some data exist in cookies then loading in flatlist
-			{
-				var logged_user_id = val.toString();
-
-				AsyncStorage.removeItem('logged_user_id');
-				AsyncStorage.removeItem('user_notes_of_' + logged_user_id);
-				// AsyncStorage.removeItem('5_list_data_for_notes_id_57');
-
-				Actions.login();
-			}
-		});
 	}
 
 	//rendering

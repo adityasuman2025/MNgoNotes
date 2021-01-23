@@ -5,7 +5,7 @@ import { Actions } from 'react-native-router-flux';
 import { getListDataOfANote, deleteNotesListDataItem, deleteANote, updateNotesListData } from "../apis";
 import { getCookieValue } from '../utils';
 import NotesListDataItem from "../components/NotesListDataItem";
-import { toast } from '../components/toast';
+import { toast } from '../components/Toast';
 
 import { globalStyles } from '../styles/globalStyles';
 
