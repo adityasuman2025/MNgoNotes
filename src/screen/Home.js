@@ -77,7 +77,9 @@ export default function Home() {
 
     //on clicking on +/add item btn
     function createNewNoteBtnClickHandler() {
-        redirectToCreateNoteScreen();
+        redirectToCreateNoteScreen({
+            refreshList: () => refreshList()
+        });
     }
 
     //rendering

@@ -43,8 +43,8 @@ export function redirectToHomeScreen() {
 }
 
 //for redirecting to the create note screen
-export function redirectToCreateNoteScreen() {
-    Actions.createNoteScreen();
+export function redirectToCreateNoteScreen(payload) {
+    Actions.createNoteScreen(payload);
 }
 
 //for redirecting to the view notes screen

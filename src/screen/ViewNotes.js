@@ -259,6 +259,7 @@ export default function ViewNotes({
             //checking is some change has been done in notes data or not
             const hasChanged = await checkIfNotesDataIsChanged();
             if (hasChanged === false) {
+                console.log("no change occured")
                 //no any change has occured
                 //redirecting back to user's home page
                 Actions.pop();
@@ -339,6 +340,7 @@ export default function ViewNotes({
             JSON.stringify(notesListDataDb),
         );
         if (response.statusCode === 200) {
+            refreshList();
             Actions.pop();
             return;
         } else {
@@ -371,7 +373,7 @@ export default function ViewNotes({
                             autoCapitalize="words"
                             value={notesData.title}
                             onChangeText={(val) => setNotesData({
-                                ...notesData,
+                                hasChanged: true,
                                 title: val,
                             })}
                         />

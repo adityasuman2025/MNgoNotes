@@ -18,6 +18,7 @@ export default function NotesListDataItem({
     onInputFieldChange,
     onSubmitInputField,
 }) {
+    console.log("notesType", notesType);
     const inputRef = useRef(null);
     useEffect(() => {
         if (positionToFocus === position) {
@@ -56,7 +57,7 @@ export default function NotesListDataItem({
                         :
                         [
                             globalStyles.notesListInput_normal, {
-                                height: window.height - 100
+                                // height: window.height - 100
                             }
                         ]
                 }

@@ -1,26 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { Text, View, Image, TouchableOpacity, Picker, ScrollView, AsyncStorage, TextInput, ActivityIndicator, BackHandler } from 'react-native';
-import axios from 'axios';
+import { Text, View, Image, TouchableOpacity, ScrollView, TextInput, ActivityIndicator, BackHandler } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 import { Actions } from 'react-native-router-flux';
 
-import { api_url_address } from "../constants";
+import NotesListDataItem from "../components/NotesListDataItem";
 import { toast } from '../components/toast';
+
+import { addUserNotes } from "../apis";
+import { getCookieValue } from '../utils';
 
 import { globalStyles } from '../styles/globalStyles';
 
-export default function CreateNote(props) {
-    var toCarry = props.toCarry;
-
-    //variables/states
-    const logged_user_id = toCarry.logged_user_id;
-
+export default function CreateNote({
+    refreshList
+}) {
     const [notesData, setNotesData] = useState({ title: "", type: 1 });
+    const [notesListData, setNotesListData] = useState([{ position: 100000, list_title: "", is_active: 1 }]);
+    const [tempNotesListData, setTempNotesListData] = useState([]);
 
-    const [notesList, setNotesList] = useState([{ position: 100000, title: "", is_active: 1 }]);
-    const [tempNotesList, setTempNotesList] = useState([]);
+    const [inputFieldPositionToFocusOn, setInputFieldPositionToFocusOn] = useState(100000);
 
     const [showIndicator, setShowIndicator] = useState(false);
-    const [saveBtnStatus, setSaveBtnStatus] = useState("not_clicked");
 
     //componentDidMount
     useEffect(() => {
@@ -32,62 +32,61 @@ export default function CreateNote(props) {
             //to handle back button press
             BackHandler.removeEventListener('hardwareBackPress', backBtnPressed);
         }
-    }, [notesData, notesList]);
+    }, [notesData, notesListData]);
 
     //function to run when back btn is pressed
     function backBtnPressed() {
         console.log("back btn pressed in create notes screen");
 
-        setShowIndicator(true);
-        doneCreatingNotesBtn(); //creating new notes
-        // return true; //prevents the original back action
+        handleSaveNoteClick("backBtn"); //creating new notes
+        return true; //prevents the original back action
     }
 
-    //on clicking on add btn
+    //function to handle when add item is clicked on
     function handleAddBtnClick(idx) {
         // creating a new empty json object
-        var emptyJSON = {};
+        let emptyJSON = {};
         emptyJSON["position"] = "";
-        emptyJSON["title"] = "";
+        emptyJSON["list_title"] = "";
         emptyJSON["is_active"] = 1;
 
         //storing the noteslist	data in a temp array
-        var tempNotesList = [...notesList];
-        var len = Object.keys(tempNotesList).length;
+        let tempNotesList = [...notesListData];
+        let len = Object.keys(tempNotesList).length;
 
-        var newNotesList = [];
-
+        let newNotesList = [];
+        let newPosition = 100000;
         //if to be added at beginning
-        if (idx == -1) {
-            if (len == 0) //if list is empty
-                var nextPosition = 100000;
-            else
-                var nextPosition = tempNotesList[0]["position"];
+        if (idx === -1) {
+            let nextPosition = 100000; //if list is empty
+            if (len !== 0) {
+                //if list is not empty
+                nextPosition = tempNotesList[0]["position"];
+            }
 
-            var newPosition = parseInt((parseInt(0) + parseInt(nextPosition)) / 2);
+            newPosition = parseInt((parseInt(0) + parseInt(nextPosition)) / 2);
 
             emptyJSON["position"] = newPosition;
             newNotesList.push(emptyJSON);
         }
 
         //looping through the temp notes list to insert new empty json at desired position
-        for (var i = 0; i < len; i++) {
-            var thisArray = tempNotesList[i];
+        for (let i = 0; i < len; i++) {
+            let thisArray = tempNotesList[i];
             newNotesList.push(thisArray);
 
-            if (i == idx)// inserting the new empty json at desired position
-            {
-                if (i == len - 1) //if last element
-                {
-                    var newPosition = parseInt(parseInt(thisArray["position"]) + parseInt(100000));
+            if (i === idx) {
+                // inserting the new empty json at desired position
+                if (i === len - 1) {
+                    //if last element
+                    newPosition = parseInt(parseInt(thisArray["position"]) + parseInt(100000));
                     emptyJSON["position"] = newPosition;
-                }
-                else //if any betweeb elements
-                {
-                    var thisPosition = thisArray["position"];
-                    var nextPosition = tempNotesList[i + 1]["position"];
+                } else {
+                    //if any between elements
+                    let thisPosition = thisArray["position"];
+                    let nextPosition = tempNotesList[i + 1]["position"];
 
-                    var newPosition = parseInt((parseInt(thisPosition) + parseInt(nextPosition)) / 2);
+                    newPosition = parseInt((parseInt(thisPosition) + parseInt(nextPosition)) / 2);
                     emptyJSON["position"] = newPosition;
                 }
                 newNotesList.push(emptyJSON);
@@ -95,265 +94,219 @@ export default function CreateNote(props) {
         }
 
         // updating the state
-        setNotesList([]);
-        setNotesList(newNotesList);
+        setInputFieldPositionToFocusOn(newPosition);
+        setNotesListData([]);
+        setNotesListData(newNotesList);
     }
 
-    //on selecting a type
-    function onSelectingType(itemValue) {
-        setNotesData({ title: notesData.title, type: itemValue });
-    }
-
-    //on typing text in any list input
-    function addListData(idx, val) {
+    //function to hanlde when checkbox is cliked on
+    function hanldeCheckBoxClick(idx, rowId, toSet) {
         //getting the old data
-        var oldJSON = notesList;
-        var oldJsonForThatKey = oldJSON[idx];
+        let oldJSON = notesListData;
+        let oldJsonForThatKey = oldJSON[idx];
 
         //update the old data
-        var newJSON_for_that_key = { position: oldJsonForThatKey.position, title: val, is_active: oldJsonForThatKey.is_active };
-        oldJSON[idx] = newJSON_for_that_key;
+        let newJSONForThatKey = {
+            "position": oldJsonForThatKey.position,
+            "list_title": oldJsonForThatKey.list_title,
+            "is_active": toSet
+        };
+        oldJSON[idx] = newJSONForThatKey;
 
         //set the state with new updated data
-        setNotesList([]);
-        setNotesList(oldJSON);
-    }
-
-    //on clicking on checkbox
-    function checkboxClickHandler(idx) {
-        //getting the old data
-        var oldJSON = notesList;
-        var oldJsonForThatKey = oldJSON[idx];
-
-        //update the old data
-        var is_active = oldJsonForThatKey["is_active"];
-        var to_set = is_active == 1 ? 2 : 1;
-
-        var newJSON_for_that_key = { position: oldJsonForThatKey.position, title: oldJsonForThatKey.title, is_active: to_set };
-        oldJSON[idx] = newJSON_for_that_key;
-
-        //set the state with new updated data
-        setNotesList([]);
-        setNotesList(oldJSON);
-
+        setTempNotesListData(notesListData);
+        setTempNotesListData((prevtemNotestFields) => {
+            return prevtemNotestFields.filter(newInputFields => newInputFields.position !== idx)
+        });
         // //i don't know how its happening, but its really happening.
         //that textinput remains at the same place and we can also type there freely
-        setTempNotesList(notesList);
-        setTempNotesList((prevtemNotestFields) => {
-            return prevtemNotestFields.filter(newInputFields => newInputFields.position != idx)
-        });
     }
 
-    //on clicking on remove btn
-    function removeFieldBtnHandler(idx) {
+    //function to handle when remove btn is clicked on for any list data input field
+    function handleRemoveClick(idx, rowId) {
         //removing that list val from data
-        var oldJSON = notesList;
+        let oldJSON = notesListData;
         if (idx > -1) {
             oldJSON.splice(idx, 1);
         }
 
+        // updating the state
+        setTempNotesListData(notesListData);
+        setTempNotesListData((prevtemNotestFields) => {
+            return prevtemNotestFields.filter(newInputFields => newInputFields.position !== idx)
+        });
         //i don't know how its happening, but its really happening.
         //that textinput remains at the same place and we can also type there freely
-        setTempNotesList(notesList);
-        setTempNotesList((prevtemNotestFields) => {
-            return prevtemNotestFields.filter(newInputFields => newInputFields.position != idx)
-        });
-
-        //setting/updating state
-        setNotesList([]);
-        setNotesList(oldJSON);
     }
 
-    //on clicking on done/back/left-arrow btn
-    function doneCreatingNotesBtn() {
-        if (saveBtnStatus == "clicked") {
-            //if btn is already clicked
-            toast("hold on!!");
-        } else {
-            //checking if someone is logged or not
-            if (logged_user_id == "") {
-                toast("you are not logged in");
-            } else {
-                const title = notesData.title;
-                const type = notesData.type;
+    //function to handle when typed in notes list data field
+    function handleInputFieldChange(idx, rowId, val) {
+        //getting the old data
+        let oldJSON = notesListData;
+        let oldJsonForThatKey = oldJSON[idx];
 
-                if (title != "" && type != "") {
-                    setSaveBtnStatus("clicked");
-                    setShowIndicator(true);
+        //update the old data
+        let newJSONForThatKey = {
+            "position": oldJsonForThatKey.position,
+            "list_title": val,
+            "is_active": oldJsonForThatKey.is_active
+        };
+        oldJSON[idx] = newJSONForThatKey;
 
-                    //posting data to API
-                    const api_end_point = api_url_address + "addUserNotesInDB.php";
-                    axios.post(api_end_point, {
-                        user_id: logged_user_id,
-                        notesData: JSON.stringify(notesData),
-                        notesList: JSON.stringify(notesList),
-                    })
-                        .then(function(response) {
-                            setSaveBtnStatus("not_clicked");
-                            setShowIndicator(false);
+        //updating the textInputs according to the latest user input
+        setTempNotesListData(notesListData);
+        setTempNotesListData((prevNotesOldList) => {
+            return prevNotesOldList.filter(newNotesOldList => parseInt(newNotesOldList.id) !== rowId)
+        });
+        //i don't know how its happening, but its really happening.
+        //that textinput remains at the same place and we can alwo type there freely
+    }
 
-                            const data = (response.data).toString();
-                            if (data == 0) {
-                                toast("failed to create notes");
-                            } else if (data == -2) {
-                                toast("failed to create notes list");
-                            } else if (data == -3) {
-                                toast("failed to create notes");
-                            } else if (data == -1) {
-                                toast("something went wrong");
-                            } else {
-                                setSaveBtnStatus("clicked");
-                                try {
-                                    //refreshing the list of notes in Home page
-                                    props.refreshList();
+    //function to hadle when enter is pressed in any input field
+    function handleSubmitInputField(e, idx) {
+        e.preventDefault();
 
-                                    //making cookies of updated notes list
-                                    const user_id = logged_user_id;
-                                    const user_notes_of = "user_notes_of_" + user_id;
+        if (notesData.type === 2) {
+            //if type is checkbox
+            handleAddBtnClick(idx);
+        }
+    }
 
-                                    const dataString = JSON.stringify(response.data);
-                                    AsyncStorage.setItem(user_notes_of, dataString);
+    //function yo handle when save btn is clicked on
+    async function handleSaveNoteClick(action) {
+        if (!showIndicator) {
+            const title = notesData.title;
+            const type = notesData.type;
 
-                                    //redirecting to the home page
-                                    Actions.pop();
-                                } catch (error) {
-                                    toast("failed to get your updated data");
-                                }
-                            }
-                        })
-                        .catch(error => {
-                            setShowIndicator(false);
-                            setSaveBtnStatus("not_clicked");
-                            toast("please check your internet connection");
-                        });
+            if (title !== "" && type !== "") {
+                setShowIndicator(true);
+                const loggedUserToken = await getCookieValue("loggedUserToken");
+                console.log("loggedUserToken", loggedUserToken);
+                //sending rqst to api
+                const response = await addUserNotes(
+                    loggedUserToken,
+                    JSON.stringify(notesData),
+                    JSON.stringify(notesListData),
+                );
+                if (response.statusCode === 200) {
+                    toast("Saved", "success");
+
+                    refreshList();
+                    Actions.pop();
+                    return;
                 } else {
+                    toast(response.msg);
                     setShowIndicator(false);
-                    setSaveBtnStatus("not_clicked");
-                    toast("title or type can't be empty");
+                }
+            } else {
+                if (action === "backBtn") {
+                    Actions.pop();
+                    return;
+                } else {
+                    toast("Title or Type can't be empty");
                 }
             }
         }
     }
 
-    //on submit editing in list textInput
-    function submitEditList(idx) {
-        const type = notesData.type;
+    function renderPageContent() {
+        return (
+            <>
+                <View style={globalStyles.notesHeader} >
+                    <TouchableOpacity
+                        style={globalStyles.createNotesBtn}
+                        onPress={handleSaveNoteClick}
+                    >
+                        <Image
+                            source={require('../img/save2.png')}
+                            style={globalStyles.goBackImg}
+                        />
+                    </TouchableOpacity>
+                    <View style={globalStyles.titleFormContainer}>
+                        <TextInput
+                            style={globalStyles.notesInputBox}
+                            underlineColorAndroid='rgba(0,0,0,0)'
+                            placeholder="Title"
+                            placeholderTextColor="#d8d8d8"
+                            selectionColor="#1c313a"
+                            keyboardType="name-phone-pad"
+                            autoCapitalize="words"
+                            onChangeText={(val) => setNotesData({
+                                ...notesData,
+                                title: val
+                            })}
+                        />
+                    </View>
+                </View>
 
-        if (type == 2) {
-            //if checkbox
-            handleAddBtnClick(idx);
-        }
+                <View style={globalStyles.notesFormContainer} >
+                    <View style={globalStyles.picker_and_addListBtn} >
+                        <Picker
+                            selectedValue={notesData.type}
+                            // mode="dropdown"
+                            style={globalStyles.pickerBox}
+                            onValueChange={(itemValue, itemIndex) =>
+                                setNotesData({
+                                    ...notesData,
+                                    type: itemValue
+                                })}
+                        >
+                            <Picker.Item label="text" value="1" />
+                            <Picker.Item label="checkbox" value="2" />
+                        </Picker>
+                    </View>
+                    {
+                        notesData.type == 2 ?
+                            <View style={globalStyles.picker_and_addListBtn} >
+                                <TouchableOpacity
+                                    style={globalStyles.addNotesListBtn}
+                                    onPress={() => handleAddBtnClick(-1)}
+                                >
+                                    <Image source={require('../img/add1.png')} style={globalStyles.addBtnText} />
+                                    <Text style={{ color: '#d8d8d8' }} > Add Item</Text>
+                                </TouchableOpacity>
+                            </View>
+                            : null
+                    }
+
+                    <View style={globalStyles.formContainer_scroll}>
+                        <ScrollView style={globalStyles.listNotesFieldContainer} >
+                            {
+                                //rendering notes data list items
+                                notesListData.map(function(item, idx) {
+                                    return (
+                                        <NotesListDataItem
+                                            key={idx}
+                                            idx={idx}
+                                            notesType={notesData.type}
+                                            positionToFocus={inputFieldPositionToFocusOn}
+                                            rowId={parseInt(item.id)}
+                                            isActive={parseInt(item.is_active)}
+                                            position={parseInt(item.position)}
+                                            title={item.list_title}
+                                            onCheckBoxClick={hanldeCheckBoxClick}
+                                            onRemoveClick={handleRemoveClick}
+                                            onInputFieldChange={handleInputFieldChange}
+                                            onSubmitInputField={handleSubmitInputField}
+                                        />
+                                    )
+                                })
+                            }
+                        </ScrollView>
+                    </View>
+                </View>
+            </>
+        )
     }
-
     //rendering
     return (
         <View style={globalStyles.container} >
-            <View style={globalStyles.notesHeader} >
-                <TouchableOpacity
-                    style={globalStyles.createNotesBtn}
-                    onPress={() => doneCreatingNotesBtn()}
-                >
-                    <Image
-                        source={require('../img/save2.png')}
-                        style={globalStyles.goBackImg}
-                    />
-                </TouchableOpacity>
-                <View style={globalStyles.titleFormContainer}>
-                    <TextInput
-                        style={globalStyles.notesInputBox}
-                        underlineColorAndroid='rgba(0,0,0,0)'
-                        placeholder="Title"
-                        placeholderTextColor="#d8d8d8"
-                        selectionColor="#1c313a"
-                        keyboardType="name-phone-pad"
-                        autoCapitalize="words"
-                        onChangeText={(val) => setNotesData({ title: val, type: notesData.type })}
-                    />
-                </View>
-            </View>
-
-            <View style={globalStyles.notesFormContainer} >
-                {
-                    showIndicator ?
-                        <ActivityIndicator size="large" color="#d8d8d8" />
-                        : null
-                }
-                <View style={globalStyles.picker_and_addListBtn} >
-                    <Picker
-                        selectedValue={notesData.type}
-                        // mode="dropdown"
-                        style={globalStyles.pickerBox}
-                        onValueChange={(itemValue, itemIndex) => onSelectingType(itemValue)}
-                    >
-                        <Picker.Item label="text" value="1" />
-                        <Picker.Item label="checkbox" value="2" />
-                    </Picker>
-                </View>
-                {
-                    notesData.type == 2 ?
-                        <View style={globalStyles.picker_and_addListBtn} >
-                            <TouchableOpacity style={globalStyles.addNotesListBtn} onPress={() => handleAddBtnClick(-1)}>
-                                <Image source={require('../img/add1.png')} style={globalStyles.addBtnText} />
-                                <Text style={{ color: '#d8d8d8' }} > Add Item</Text>
-                            </TouchableOpacity>
-                        </View>
-                        : null
-                }
-
-                <View style={globalStyles.formContainer_scroll}>
-                    <ScrollView style={globalStyles.listNotesFieldContainer} >
-                        {
-                            notesList.map((item, idx) => {
-                                const key = item.position;
-
-                                //checking the status of checkbox //either checked or not
-                                const is_active = item.is_active;
-
-                                //rendering
-                                return (
-                                    <View key={key} style={globalStyles.listNotesFields} >
-                                        {
-                                            notesData.type == 2 ?
-                                                <TouchableOpacity key={key} onPress={() => checkboxClickHandler(idx)} >
-                                                    <Image
-                                                        source={is_active == 1 ? require('../img/unchecked.png') : require('../img/checked.png')}
-                                                        style={globalStyles.notesCheckedImg}
-                                                    />
-                                                </TouchableOpacity>
-                                                : null
-                                        }
-
-                                        <TextInput
-                                            multiline={notesData.type == 2 ? false : true}
-                                            style={notesData.type == 2 ? globalStyles.notesListInput_checkbox : globalStyles.notesListInput_normal}
-                                            underlineColorAndroid='rgba(0,0,0,0)'
-                                            placeholder="type text"
-                                            placeholderTextColor="#d8d8d8"
-                                            selectionColor="#1c313a"
-                                            keyboardType="name-phone-pad"
-                                            onChangeText={(val) => addListData(idx, val)}
-                                            onSubmitEditing={() => submitEditList(idx)}
-                                            autoFocus //to auto focus on creation of its new element
-                                        />
-
-                                        {
-                                            //if types is checkox then showing delete/close icon
-                                            notesData.type == 2 ?
-                                                <TouchableOpacity onPress={() => removeFieldBtnHandler(idx)} >
-                                                    <Image
-                                                        source={require('../img/cross2.png')}
-                                                        style={globalStyles.notesFieldCloseImg}
-                                                    />
-                                                </TouchableOpacity>
-                                                : null
-                                        }
-                                    </View>
-                                )
-                            })
-                        }
-                    </ScrollView>
-                </View>
-            </View>
+            {
+                showIndicator ?
+                    <ActivityIndicator size="large" color="#d8d8d8" />
+                    :
+                    renderPageContent()
+            }
         </View>
     )
 }
