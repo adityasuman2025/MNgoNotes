@@ -1,147 +1,87 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, FlatList, AsyncStorage, Image, ActivityIndicator } from 'react-native';
-import axios from 'axios';
-import { Actions } from 'react-native-router-flux';
+import { StyleSheet, Text, View, TouchableOpacity, FlatList, Image, ActivityIndicator } from 'react-native';
 
 import Header from '../components/header';
+import { getCookieValue, makeCookie, redirectToCreateNoteScreen, redirectToViewNotesScreen } from '../utils';
+import { getUserNotes } from "../apis";
 import { toast } from '../components/toast';
-import { api_url_address } from "../constants";
 
 import { globalStyles } from '../styles/globalStyles';
 
-export default function Home({ toCarry }) {
-    const logged_user_id = toCarry.logged_user_id;
-
+export default function Home() {
+    const [loggedUserToken, setLoggedUserToken] = useState(null);
     const [notes, setNotes] = useState([]);
     const [showIndicator, setShowIndicator] = useState(true);
 
-    //componentDidMount
     useEffect(() => {
-        //here we first fetch data(list) from API and store fetched data in cookies
-        //and then update state from that cookie
-        fetchListFromAPI(); //fetching list from cookie
+        (async () => {
+            const loggedUserTokenCookie = await getCookieValue("loggedUserToken");
+            if (loggedUserTokenCookie) {
+                setLoggedUserToken(loggedUserTokenCookie);
+                await fetchNotesFromAPI(loggedUserTokenCookie);
+            }
+        })();
     }, []);
 
     //function to refresh the list
-    const refreshList = () => {
+    function refreshList() {
+        console.log("refresh list");
         setShowIndicator(true); //displaying loading animation
-        fetchListFromAPI();
+        fetchNotesFromAPI();
     }
 
-    //function to update state (list of notes) from cookies
-    function loadListFromCookies() {
-        try {
-            //looking for user notes data in cookies
-            const user_id = logged_user_id;
-            const user_notes_of = "user_notes_of_" + user_id;
-
-            AsyncStorage.getItem(user_notes_of).then((val) => {
-                if (val != null) {
-                    //if some data exist in cookies then loading in flatlist
-                    console.log("list loaded from cookie");
-                    const data = JSON.parse(val);
-                    setNotes(data);
+    async function fetchNotesFromAPI(loggedUserToken) {
+        //sending rqst to api
+        const response = await getUserNotes(loggedUserToken);
+        if (response.statusCode === 200) {
+            const data = response.data;
+            if (data) {
+                const notesOf = "notesOf_" + loggedUserToken;
+                const notesCookie = await makeCookie(notesOf, JSON.stringify(data));
+                if (notesCookie) {
+                    await loadNotesFromCookies(loggedUserToken);
                 } else {
-                    toast("something went wrong");
+                    toast("Something went wrong");
                 }
-            });
-        } catch {
-            toast("something went wrong");
+            } else {
+                toast("Something went wrong");
+            }
+        } else if (response.statusCode === 600) {
+            //no internet connection / API DNE
+            await loadNotesFromCookies(loggedUserToken);
+        } else {
+            toast(response.msg);
         }
-
-        setShowIndicator(false); //hiding loading animation
     }
 
-    //function to fetch data form api
-    async function fetchListFromAPI() {
-        try {
-            const api_end_point = api_url_address + "getUserNotes.php";
-            const response = await axios.post(api_end_point, {
-                user_id: logged_user_id
-            });
-            const dataString = JSON.stringify(response.data);
-            console.log("list fetched from internet");
-
-            if (dataString == 0) {
-                toast("failed to fetch data");
-            } else if (dataString == -1) {
-                toast("something went wrong");
-            } else {
-                //some data is there
-                //making cookie of the list of notes
-                const user_id = logged_user_id;
-                const user_notes_of = "user_notes_of_" + user_id;
-                await AsyncStorage.setItem(user_notes_of, dataString);
-            }
-        } catch {
-            toast("please check your internet connection");
+    async function loadNotesFromCookies(loggedUserToken) {
+        const notesOf = "notesOf_" + loggedUserToken;
+        const notesCookie = await getCookieValue(notesOf);
+        if (notesCookie) {
+            setNotes(JSON.parse(notesCookie));
+        } else {
+            toast("Something went wrong");
         }
 
-        loadListFromCookies(); //loading list from cookie
+        setShowIndicator(false);
     }
 
     //on clicking on any notes
     function onClickingOnAnyNotes(item) {
         setShowIndicator(true);
 
-        var toCarry = {};
-        toCarry['logged_user_id'] = logged_user_id;
-        toCarry['notes_id'] = item.notes_id;
-        toCarry['title'] = item.title;
-        toCarry['type'] = item.type;
-
-        //loading notes list data from internet
-        const api_end_point = api_url_address + "getListDataOfANote.php";
-        axios.post(api_end_point, {
-            notes_id: item.notes_id
-        })
-            .then(function(response) {
-                setShowIndicator(false);
-
-                var dataString = JSON.stringify((response.data));
-
-                if (dataString == 0) {
-                    toast("failed to fetch data");
-                } else if (dataString == -1) {
-                    toast("something went wrong");
-                } else {
-                    //some data is there
-                    try {
-                        //making cookie of that notes_id list
-                        var user_notes_list_data = logged_user_id + "_list_data_for_notes_id_" + item.notes_id;
-                        AsyncStorage.setItem(user_notes_list_data, dataString);
-
-                        //redirecting to notes view page
-                        toCarry['notesOldList'] = dataString;
-                        Actions.ViewNotesPage({ toCarry: toCarry, refreshList: () => refreshList() }); //transfering refreshList function so that notes list can be refreshed when a note is deleted
-                    } catch (error) {
-                        toast("failed to get your updated data");
-                    }
-                }
-            })
-            .catch(error => {
-                //looking for user notes list in cookies if internet not available
-                var user_notes_list_data = logged_user_id + "_list_data_for_notes_id_" + item.notes_id;
-                AsyncStorage.getItem(user_notes_list_data).then((val) => {
-                    setShowIndicator(false);
-
-                    if (val != null) {
-                        //if some data exist in cookies then loading in flatlist
-                        toCarry['notesOldList'] = val;
-                        Actions.ViewNotesPage({ toCarry: toCarry, refreshList: () => refreshList() }); //transfering refreshList function so that list of notes can be refreshed when a note is deleted
-                    } else {
-                        toast("please check your internet connection");
-                    }
-                });
-            });
+        if (item.encrypted_notes_id) {
+            redirectToViewNotesScreen({
+                notesId: item.encrypted_notes_id,
+                refreshList: refreshList,
+                // refreshList: () => refreshList()
+            }); //transfering refreshList to refresh the notes list when any note id deleted or any new note ic created
+        }
     }
 
     //on clicking on +/add item btn
     function createNewNoteBtnClickHandler() {
-        var toCarry = {};
-        toCarry['logged_user_id'] = logged_user_id;
-
-        Actions.createNotesForm({ toCarry: toCarry, refreshList: () => refreshList() }); //transfering refreshList function so that list of notes can be refreshed when a new notes is created
+        redirectToCreateNoteScreen();
     }
 
     //rendering
@@ -156,9 +96,12 @@ export default function Home({ toCarry }) {
             <FlatList
                 style={styles.list}
                 data={notes}
-                keyExtractor={(item) => item.notes_id}
-                renderItem={({ item }) => (
-                    <TouchableOpacity style={styles.box} onPress={() => onClickingOnAnyNotes(item)}>
+                keyExtractor={(item) => item.encrypted_notes_id}
+                renderItem={({ item, index }) => (
+                    <TouchableOpacity
+                        style={styles.box}
+                        onPress={() => onClickingOnAnyNotes(item)}
+                    >
                         <Image
                             source={item.type == 1 ? require('../img/notes_icon.png') : require('../img/todos_icon.png')}
                             style={styles.icon}

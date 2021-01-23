@@ -35,8 +35,8 @@ export default function Routes() {
 				<Scene key="registerScreen" component={Register} />
 				<Scene key="homeScreen" component={Home} type="replace" back={true} />
 
-				<Scene key="ViewNotesScreen" component={ViewNotes} back={true} />
-				<Scene key="createNotesScreen" component={CreateNote} back={true} />
+				<Scene key="viewNotesScreen" component={ViewNotes} back={true} />
+				<Scene key="createNoteScreen" component={CreateNote} back={true} />
 			</Scene>
 		</Router>
 	)

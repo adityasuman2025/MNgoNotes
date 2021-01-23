@@ -8,16 +8,10 @@ import { toast } from '../components/toast';
 
 import { globalStyles } from '../styles/globalStyles';
 
-export default function ViewNotes(props) {
-    var toCarry = props.toCarry;
-
-    //variables/states
-    const logged_user_id = toCarry.logged_user_id;
-
-    const notes_id = toCarry.notes_id;
-    const title = toCarry.title;
-    const type = toCarry.type;
-
+export default function ViewNotes({
+    notesId,
+    refreshList,
+}) {
     const [notesData, setNotesData] = useState({ title: title, hasChanged: false });
 
     const notesOldList_from_home = toCarry.notesOldList;

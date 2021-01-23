@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Image, TextInput, ActivityIndicator } from 'react-native';
-import axios from 'axios';
 
-import { auth_api_url_address } from "../constants";
+import { registerNewUser } from "../apis";
+import { validateUsername, validateEmail, validateContactNo } from "../utils";
+import { PROJECT_NAME } from '../constants';
 
 import { globalStyles } from '../styles/globalStyles';
 
@@ -18,99 +19,76 @@ export default function Register() {
     });
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
-    const [regBtnStatus, setRegBtnStatus] = useState("not_clicked");
     const [showIndicator, setShowIndicator] = useState(false);
 
-    //function to validate username and email
-    function validateUsername(username) {
-        const re = /^[a-zA-Z0-9_]*$/;
-        return re.test(username);
-    }
-
-    function validateEmail(email) {
-        const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-        return re.test(email);
-    }
-
     //on clciking on register btn
-    function registerBtnClickHandler() {
-        if (regBtnStatus == "clicked") {
-            //if btn is already clicked
-            setError("hold on!!");
-        } else {
+    async function registerBtnClickHandler() {
+        if (!showIndicator) {
+            setShowIndicator(true);
+            setError("");
+            setSuccess("");
+
             const username = registerInfo.username.trim();
             const name = registerInfo.name.trim();
             const email = registerInfo.email.trim();
 
             const password = registerInfo.password.trim();
-            const conf_pass = registerInfo.conf_pass.trim();
+            const confPassword = registerInfo.conf_pass.trim();
 
-            const passcode = registerInfo.pass_code;
-            const conf_pass_code = registerInfo.conf_pass_code;
+            const passCode = registerInfo.pass_code;
+            const confPassCode = registerInfo.conf_pass_code;
 
-            if (username != "" && name != "" && email != "" && password != "" && conf_pass != "" && passcode != "" && conf_pass_code != "") {
-                //validating username and email
+            if (username !== "" && name != "" && email !== "" && password !== "" && confPassword !== "" && passCode !== "" && confPassCode !== "") {
                 if (!validateUsername(username)) {
-                    setError("username cannot contain symbol and spaces");
+                    setShowIndicator(false);
+                    setError("Username cannot contain symbol and spaces");
                     return;
                 }
 
                 if (!validateEmail(email)) {
-                    setError("invalid email id format");
+                    setShowIndicator(false);
+                    setError("Invalid email id format");
                     return;
                 }
 
-                if (password != conf_pass) {
-                    setError("password do not match");
+                if (password !== confPassword) {
+                    setShowIndicator(false);
+                    setError("Password do not match");
                     return;
                 }
 
-                if (passcode != conf_pass_code) {
-                    setError("pass code do not match");
+                if (passCode !== confPassCode) {
+                    setShowIndicator(false);
+                    setError("Pass code do not match");
                     return;
                 }
 
-                if (passcode.length !== 4) {
-                    setError("pass code must be 4 digits long");
+                if (passCode.length !== 4) {
+                    setShowIndicator(false);
+                    setError("Pass code must be 4 digits long");
                     return;
                 }
 
-                setRegBtnStatus("clicked");
-                setSuccess("");
-                setShowIndicator(true); //display loading animation
+                if (!validateContactNo(passCode)) {
+                    setShowIndicator(false);
+                    setError("Pass code must be numeric");
+                    return;
+                }
 
-                //posting request to API
-                const api_end_point = auth_api_url_address + "register_user.php";
-                axios.post(api_end_point, {
-                    username,
-                    name,
-                    email,
-                    password,
-                    passcode,
-                    registeringFor: "NotesApp",
-                })
-                    .then(function(response) {
-                        setRegBtnStatus("not_clicked");
-
-                        const resp = (response.data);
-                        if (resp.statusCode === 200) {
-                            setShowIndicator(false); //hiding loading animation
-                            setError("");
-                            setSuccess("sucessfully registered. Please login to continue");
-                        } else {
-                            setShowIndicator(false); //hiding loading animation
-                            setError(resp.msg);
-                        }
-                    })
-                    .catch(error => {
-                        setShowIndicator(false); //hiding loading animation
-                        setError("please check your internet connection");
-                    });
+                //sending rqst to api
+                const response = await registerNewUser(username, name, email, password, passCode);
+                if (response.statusCode === 200) {
+                    setError("");
+                    setSuccess("Sucessfully registered. Please Login to continue", "success");
+                } else {
+                    setError(response.msg);
+                }
             } else {
-                setShowIndicator(false); //hiding loading animation
-                setError("please fill all the fields");
+                setError("Please fill all details");
             }
         }
+
+        setShowIndicator(false);
     }
 
     //rendering
@@ -123,7 +101,7 @@ export default function Register() {
                         source={require('../img/logo.png')}
                     />
 
-                    <Text style={styles.logoText}>MNgo Notes</Text>
+                    <Text style={styles.logoText}>{PROJECT_NAME}</Text>
 
                     <View style={globalStyles.formContainer} >
                         <TextInput style={globalStyles.inputBox}
@@ -135,13 +113,8 @@ export default function Register() {
                             autoFocus
                             onChangeText={(username) =>
                                 setRegisterInfo({
+                                    ...registerInfo,
                                     username: username,
-                                    name: registerInfo.name,
-                                    email: registerInfo.email,
-                                    password: registerInfo.password,
-                                    conf_pass: registerInfo.conf_pass,
-                                    pass_code: registerInfo.pass_code,
-                                    conf_pass_code: registerInfo.conf_pass_code,
                                 })
                             }
                         />
@@ -154,13 +127,8 @@ export default function Register() {
                             autoCapitalize='words'
                             onChangeText={(name) =>
                                 setRegisterInfo({
-                                    username: registerInfo.username,
+                                    ...registerInfo,
                                     name: name,
-                                    email: registerInfo.email,
-                                    password: registerInfo.password,
-                                    conf_pass: registerInfo.conf_pass,
-                                    pass_code: registerInfo.pass_code,
-                                    conf_pass_code: registerInfo.conf_pass_code,
                                 })
                             }
                         />
@@ -173,13 +141,8 @@ export default function Register() {
                             autoCapitalize='none'
                             onChangeText={(email) =>
                                 setRegisterInfo({
-                                    username: registerInfo.username,
-                                    name: registerInfo.name,
+                                    ...registerInfo,
                                     email: email,
-                                    password: registerInfo.password,
-                                    conf_pass: registerInfo.conf_pass,
-                                    pass_code: registerInfo.pass_code,
-                                    conf_pass_code: registerInfo.conf_pass_code,
                                 })
                             }
                         />
@@ -191,13 +154,8 @@ export default function Register() {
                             selectionColor="#1c313a"
                             onChangeText={(password) =>
                                 setRegisterInfo({
-                                    username: registerInfo.username,
-                                    name: registerInfo.name,
-                                    email: registerInfo.email,
+                                    ...registerInfo,
                                     password: password,
-                                    conf_pass: registerInfo.conf_pass,
-                                    pass_code: registerInfo.pass_code,
-                                    conf_pass_code: registerInfo.conf_pass_code,
                                 })
                             }
                         />
@@ -209,13 +167,8 @@ export default function Register() {
                             selectionColor="#1c313a"
                             onChangeText={(conf_pass) =>
                                 setRegisterInfo({
-                                    username: registerInfo.username,
-                                    name: registerInfo.name,
-                                    email: registerInfo.email,
-                                    password: registerInfo.password,
+                                    ...registerInfo,
                                     conf_pass: conf_pass,
-                                    pass_code: registerInfo.pass_code,
-                                    conf_pass_code: registerInfo.conf_pass_code,
                                 })
                             }
                         />
@@ -229,13 +182,8 @@ export default function Register() {
                             maxLength={4}
                             onChangeText={(pass_code) =>
                                 setRegisterInfo({
-                                    username: registerInfo.username,
-                                    name: registerInfo.name,
-                                    email: registerInfo.email,
-                                    password: registerInfo.password,
-                                    conf_pass: registerInfo.conf_pass,
+                                    ...registerInfo,
                                     pass_code: pass_code,
-                                    conf_pass_code: registerInfo.conf_pass_code,
                                 })
                             }
                         />
@@ -249,12 +197,7 @@ export default function Register() {
                             maxLength={4}
                             onChangeText={(conf_pass_code) =>
                                 setRegisterInfo({
-                                    username: registerInfo.username,
-                                    name: registerInfo.name,
-                                    email: registerInfo.email,
-                                    password: registerInfo.password,
-                                    conf_pass: registerInfo.conf_pass,
-                                    pass_code: registerInfo.pass_code,
+                                    ...registerInfo,
                                     conf_pass_code: conf_pass_code,
                                 })
                             }

@@ -9,9 +9,9 @@ import { toast } from '../components/toast';
 import { globalStyles } from '../styles/globalStyles';
 
 export default function PassCode() {
-    const [loggedUserToken, setLoggedUserToken] = useState(false);
-    const [showIndicator, setShowIndicator] = useState(false);
+    const [loggedUserToken, setLoggedUserToken] = useState(null);
     const [enteredPassCode, setEnteredPassCode] = useState("");
+    const [showIndicator, setShowIndicator] = useState(false);
 
     useEffect(() => {
         (async () => {
