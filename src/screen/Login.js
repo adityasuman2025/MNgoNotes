@@ -1,74 +1,51 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Image, AsyncStorage, TextInput, ActivityIndicator } from 'react-native';
-import axios from 'axios';
-import { Actions } from 'react-native-router-flux';
+import { StyleSheet, Text, View, TouchableOpacity, Image, TextInput, ActivityIndicator } from 'react-native';
 
-import { auth_api_url_address } from "../constants";
+import { VerifyLogin } from "../apis";
+import { makeCookie, redirectToRegisterScreen, redirectToPassCodeScreen } from "../utils";
+import { PROJECT_NAME } from '../constants';
 
 import { globalStyles } from '../styles/globalStyles';
 
 export default function Login() {
     const [loginInfo, setLoginInfo] = useState({ username: "", password: "" });
     const [error, setError] = useState("");
-    const [loginBtnStatus, setLoginBtnStatus] = useState("not_clicked");
     const [showIndicator, setShowIndicator] = useState(false);
 
     //on clicking on login btn
-    function loginBtnClickHandler() {
-        if (loginBtnStatus == "clicked") {
-            //if btn is already clicked
-            setError("hold on!!");
-        } else {
+    async function loginBtnClickHandler() {
+        if (!showIndicator) {
+            setShowIndicator(true);
+            setError("");
+
             const username = loginInfo.username.trim();
             const password = loginInfo.password.trim();
+            if (username !== "" && password !== "") {
 
-            if (username != "" && password != "") {
-                setShowIndicator(true); //display loading animation
-                setError("");
-
-                //posting request to API
-                const api_end_point = auth_api_url_address + "verify_user.php";
-                axios.post(api_end_point, {
-                    username: username,
-                    password: password
-                })
-                    .then(function(response) {
-                        setLoginBtnStatus("not_clicked");
-
-                        const resp = (response.data);
-                        if (resp.statusCode === 200) {
-                            const data = resp.data;
-                            //succesfully logged in
-                            setShowIndicator(false); //hiding loading animation
-                            setLoginBtnStatus("clicked");
-
-                            //creating cookie
-                            AsyncStorage.setItem('logged_user_id', data.id);
-
-                            //redirecting to the home page
-                            let toCarry = {
-                                logged_user_id: data.id,
-                            };
-                            Actions.passCode({ toCarry: toCarry });
+                //sending rqst to api
+                const response = await VerifyLogin(username, password);
+                if (response.statusCode === 200) {
+                    const token = response.token;
+                    if (token) {
+                        const loggedUserToken = await makeCookie("loggedUserToken", token);
+                        if (loggedUserToken) {
+                            redirectToPassCodeScreen();
+                            return;
                         } else {
-                            setShowIndicator(false); //hiding loading animation
-                            setError(resp.msg);
+                            setError("Something went wrong");
                         }
-                    })
-                    .catch(error => {
-                        setShowIndicator(false); //hiding loading animation
-                        setError("please check your internet connection");
-                    });
+                    } else {
+                        setError("Something went wrong");
+                    }
+                } else {
+                    setError(response.msg);
+                }
             } else {
-                setShowIndicator(false); //hiding loading animation
-                setError("please fill all the fields");
+                setError("Please fill all the fields");
             }
         }
-    }
 
-    //for redirecting to the register page
-    function redirectToRegisterScreen() {
-        Actions.registerScreen();
+        setShowIndicator(false);
     }
 
     //rendering
@@ -80,7 +57,7 @@ export default function Login() {
                     source={require('../img/logo.png')}
                 />
 
-                <Text style={styles.logoText}>MNgo Notes</Text>
+                <Text style={styles.logoText}>{PROJECT_NAME}</Text>
 
                 <View style={globalStyles.formContainer} >
                     <TextInput style={globalStyles.inputBox}

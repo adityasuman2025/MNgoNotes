@@ -1,2 +1,4 @@
-export const api_url_address = "https://mngo.in/notes_api/";
-export const auth_api_url_address = "https://mngo.in/auth_api/";
+export const PROJECT_NAME = "MNgo Notes";
+
+export const AUTH_API_URL_ADDRESS = "https://mngo.in/auth_api/";
+export const API_URL_ADDRESS = "https://mngo.in/notes_api2/";

@@ -10,7 +10,7 @@ import { api_url_address } from "../constants";
 import { globalStyles } from '../styles/globalStyles';
 
 export default function PassCode({ toCarry }) {
-    const logged_user_id = toCarry.logged_user_id;
+    // const logged_user_id = toCarry.logged_user_id;
 
     const [showIndicator, setShowIndicator] = useState(false);
     const [error, setError] = useState("");
