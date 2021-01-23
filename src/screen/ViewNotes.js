@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, Image, TouchableOpacity, ScrollView, Alert, TextInput, ActivityIndicator, BackHandler } from 'react-native';
+import { Text, View, Image, TouchableOpacity, ScrollView, Alert, TextInput, ActivityIndicator, BackHandler } from 'react-native';
 import { Actions } from 'react-native-router-flux';
 
 import { getListDataOfANote, deleteNotesListDataItem, deleteANote, updateNotesListData } from "../apis";
@@ -378,7 +378,7 @@ export default function ViewNotes({
                     </View>
 
                     <TouchableOpacity onPress={handleDeleteNoteClick}>
-                        <Image source={require('../img/delete.png')} style={styles.deleteNotesImg} />
+                        <Image source={require('../img/delete.png')} style={globalStyles.deleteNotesImg} />
                     </TouchableOpacity>
                 </View>
 
@@ -435,11 +435,3 @@ export default function ViewNotes({
         </View>
     )
 }
-
-const styles = StyleSheet.create({
-    deleteNotesImg: {
-        width: 22,
-        height: 22,
-        tintColor: '#1c313a',
-    }
-});

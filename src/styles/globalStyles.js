@@ -247,4 +247,10 @@ export const globalStyles = StyleSheet.create({
         justifyContent: 'center',
         marginBottom: 50,
     },
+
+    deleteNotesImg: {
+        width: 22,
+        height: 22,
+        tintColor: '#1c313a',
+    }
 });
