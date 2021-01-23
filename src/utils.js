@@ -36,3 +36,8 @@ export function redirectToRegisterScreen() {
 export function redirectToPassCodeScreen() {
     Actions.passCodeScreen();
 }
+
+//for redirecting to the home screen
+export function redirectToHomeScreen() {
+    Actions.homeScreen();
+}

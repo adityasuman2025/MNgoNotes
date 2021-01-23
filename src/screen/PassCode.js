@@ -1,88 +1,61 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, TextInput, AsyncStorage, ActivityIndicator } from 'react-native';
-import axios from 'axios';
-import { Actions } from 'react-native-router-flux';
+import { StyleSheet, Text, View, TextInput, ActivityIndicator } from 'react-native';
 
 import Header from '../components/header';
+import { getCookieValue, redirectToHomeScreen } from '../utils';
+import { VerifyPassCode } from "../apis";
 import { toast } from '../components/toast';
-import { api_url_address } from "../constants";
 
 import { globalStyles } from '../styles/globalStyles';
 
-export default function PassCode({ toCarry }) {
-    // const logged_user_id = toCarry.logged_user_id;
-
+export default function PassCode() {
+    const [loggedUserToken, setLoggedUserToken] = useState(false);
     const [showIndicator, setShowIndicator] = useState(false);
     const [error, setError] = useState("");
     const [enteredPassCode, setEnteredPassCode] = useState("");
 
+    useEffect(() => {
+        (async () => {
+            const loggedUserTokenCookie = await getCookieValue("loggedUserToken");
+            if (loggedUserTokenCookie) {
+                setLoggedUserToken(loggedUserTokenCookie);
+            }
+        })();
+    }, [])
+
     //when pass code is entered
     useEffect(() => {
-        //verifying entered pass cpde
-        const enteredPassCodeLength = enteredPassCode.length;
-        if (enteredPassCodeLength === 4) {
-            //if entered pass code is 4 digits long
-            setShowIndicator(true); //displaying loading animation
+        if (enteredPassCode.length === 4) {
+            setShowIndicator(true);
 
             //checking if someone is logged or not
-            if (logged_user_id === "") {
-                toast("you are not logged in");
-            } else {
-                var user_id = logged_user_id;
-                var user_pass_code_of = "user_pass_code_of_" + user_id;
+            if (loggedUserToken) {
+                var passCodeOf = "passCodeOf_" + loggedUserToken;
 
                 //looking for pass code in cookies
-                AsyncStorage.getItem(user_pass_code_of).then((val) => {
-                    if (val != null) {
+                (async () => {
+                    const passCode = await getCookieValue(passCodeOf);
+                    if (passCode) {
                         console.log("pass code verified from cookie");
-                        setShowIndicator(false); //hiding loading animation
 
-                        if (val === enteredPassCode) {
-                            //redirecting to the home page
-                            var toCarry = {};
-                            toCarry['logged_user_id'] = user_id;
-
-                            Actions.homePage({ toCarry: toCarry });
+                        if (passCode === enteredPassCode) {
+                            redirectToHomeScreen();
+                            return;
                         } else {
-                            setError("wrong pass code");
+                            toast("Wrong pass code");
                         }
                     } else {
                         console.log("pass code verified from api");
-
-                        //sending rqst to api for verifiying pass code
-                        const api_end_point = api_url_address + "verifyPassCode.php";
-                        axios.post(api_end_point, {
-                            user_id: user_id,
-                            passcode: enteredPassCode,
-                        }).then(function(response) {
-                            setShowIndicator(false); //hiding loading animation
-
-                            var data = (response.data).toString();
-                            if (data == 0) {
-                                setError("wrong pass code");
-                            } else if (data == 1) {
-                                //creating cookie
-                                AsyncStorage.setItem(user_pass_code_of, enteredPassCode);
-
-                                //redirecting to the home page
-                                var toCarry = {};
-                                toCarry['logged_user_id'] = user_id;
-
-                                Actions.homePage({ toCarry: toCarry });
-                            } else {
-                                setError("something went wrong");
-                            }
-                        }).catch(error => {
-                            setShowIndicator(false); //hiding loading animation
-                            toast("please check your internet connection");
-                        });
                     }
-                });
+                })();
+            } else {
+                toast("You are not logged in");
             }
         } else {
-            setShowIndicator(false); //hiding loading animation
             setError("");
         }
+
+        setShowIndicator(false);
     }, [enteredPassCode]);
 
     //rendering
