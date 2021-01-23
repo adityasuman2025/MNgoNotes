@@ -61,7 +61,6 @@ export default function NotesListDataItem({
                 selectionColor="#1c313a"
                 keyboardType="name-phone-pad"
                 onChangeText={(val) => onInputFieldChange(idx, rowId, val)}
-                // onSubmitEditing={() => submitEditList(idx)}
                 onSubmitEditing={(e) => onSubmitInputField(e, idx)}
             />
 

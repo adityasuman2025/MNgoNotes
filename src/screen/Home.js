@@ -25,9 +25,8 @@ export default function Home() {
 
     //function to refresh the list
     function refreshList() {
-        console.log("refresh list");
         setShowIndicator(true); //displaying loading animation
-        fetchNotesFromAPI();
+        fetchNotesFromAPI(loggedUserToken);
     }
 
     async function fetchNotesFromAPI(loggedUserToken) {
@@ -70,9 +69,8 @@ export default function Home() {
     function onClickingOnAnyNotes(item) {
         if (item.encrypted_notes_id) {
             redirectToViewNotesScreen({
-                notesId: item.encrypted_notes_id,
-                refreshList: refreshList,
-                // refreshList: () => refreshList()
+                encryptedNotesId: item.encrypted_notes_id,
+                refreshList: () => refreshList()
             }); //transfering refreshList to refresh the notes list when any note id deleted or any new note ic created
         }
     }

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, Image, TouchableOpacity, ScrollView, Alert, TextInput, ActivityIndicator, BackHandler } from 'react-native';
+import { Actions } from 'react-native-router-flux';
 
 import { getListDataOfANote, deleteNotesListDataItem, deleteANote, updateNotesListData } from "../apis";
 import { getCookieValue } from '../utils';
@@ -9,7 +10,7 @@ import { toast } from '../components/toast';
 import { globalStyles } from '../styles/globalStyles';
 
 export default function ViewNotes({
-    notesId: encryptedNotesId,
+    encryptedNotesId,
     refreshList,
 }) {
     const [loggedUserToken, setLoggedUserToken] = useState(null);
@@ -23,15 +24,9 @@ export default function ViewNotes({
 
     const [inputFieldPositionToFocusOn, setInputFieldPositionToFocusOn] = useState(-1);
 
-    const [deleteWhat, setDeleteWhat] = useState(null);
-    const [notesListDataItemToDelete, setNotesListDataItemToDelete] = useState(null);
-
     const [showIndicator, setShowIndicator] = useState(true);
 
     useEffect(() => {
-        //to handle back button press
-        BackHandler.addEventListener('hardwareBackPress', backBtnPressed);
-
         (async () => {
             const loggedUserTokenCookie = await getCookieValue("loggedUserToken");
             if (loggedUserTokenCookie) {
@@ -39,20 +34,23 @@ export default function ViewNotes({
                 await fetchNotesListData(loggedUserTokenCookie, encryptedNotesId);
             }
         })();
+    }, []);
 
+    useEffect(() => {
+        //to handle back button press
+        BackHandler.addEventListener('hardwareBackPress', backBtnPressed);
+
+        //componentWillUnmount
         return () => {
             //to handle back button press
             BackHandler.removeEventListener('hardwareBackPress', backBtnPressed);
         }
-    }, []);
+    }, [notesData, notesListData]);
 
     //function to run when back btn is pressed
     function backBtnPressed() {
-        console.log("back btn pressed in view notes screen");
-
-        setShowIndicator(true);
-        handleSaveNoteClick(); //saving the edited data
-        // return true; //prevents the original back action
+        handleSaveNoteClick(true); //saving the edited data
+        return true; //prevents the original back action
     }
 
     //function to handle when any note item is clicked on
@@ -176,11 +174,10 @@ export default function ViewNotes({
             });
         } else {
             //if that textinput is old fetched from database
-            setNotesListDataItemToDelete(rowId);
-            setDeleteWhat("notesListDataItem");
-
-            setConfirmDialogText("Are you sure to delete this item?");
-            setIsConfirmDialogOpen(true);
+            Alert.alert("Delete Note List Data", "Are you sure to delete?", [
+                { text: "Yes", onPress: () => deleteANotesListDataItem(rowId) },
+                { text: "No", onPress: () => console.log("No") }
+            ]);
         }
     }
 
@@ -191,13 +188,13 @@ export default function ViewNotes({
             setShowIndicator(true);
 
             //sending rqst to api
-            const response = await deleteNotesListDataItem(getCookieValue("loggedUserToken"), rowId);
+            const response = await deleteNotesListDataItem(loggedUserToken, rowId);
             if (response.statusCode === 200) {
                 setNotesListData((prevNotesOldList) => {
                     return prevNotesOldList.filter(newNotesOldList => newNotesOldList.id != rowId); // !== is not working
                 });
             } else {
-                makeSnackBar(response.msg);
+                toast(response.msg);
             }
 
             setShowIndicator(false);
@@ -233,10 +230,10 @@ export default function ViewNotes({
 
     //function to handle when delete note btn is pressed
     function handleDeleteNoteClick() {
-        setDeleteWhat("note");
-
-        setConfirmDialogText("Are you sure to delete " + notesData.title + "?");
-        setIsConfirmDialogOpen(true);
+        Alert.alert("Delete Note", "Are you sure to delete?", [
+            { text: "Yes", onPress: () => deleteNote() },
+            { text: "No", onPress: () => console.log("No") }
+        ]);
     }
 
     //function to delete a note
@@ -244,61 +241,28 @@ export default function ViewNotes({
         setShowIndicator(true);
 
         //sending rqst to api
-        const response = await deleteANote(getCookieValue("loggedUserToken"), encryptedNotesId);
+        const response = await deleteANote(loggedUserToken, encryptedNotesId);
         if (response.statusCode === 200) {
-            // props.history.goBack(); //going back to user's home page
-            setRedirectToUserHome(true);
+            refreshList();
+            Actions.pop();
             return;
         } else {
-            makeSnackBar(response.msg);
+            toast(response.msg);
         }
 
         setShowIndicator(false);
     }
 
-    //function to close the confirm dialog box
-    function handleConfirmDialogClose() {
-        setIsConfirmDialogOpen(false);
-
-        //if confirm dialog has appeared for confirm saving change
-        if (deleteWhat === "backPressHandler") {
-            window.history.pushState(null, null, window.location.pathname);
-            setBackbuttonPress(false);
-        }
-    }
-
-    //funtion to confirm the confirm dialog //when yes is pressed
-    function handleConfirmDialogConfirm() {
-        setIsConfirmDialogOpen(false);
-
-        if (deleteWhat === "notesListDataItem") {
-            deleteANotesListDataItem(notesListDataItemToDelete);
-        } else if (deleteWhat === "note") {
-            deleteNote();
-        } else if (deleteWhat === "backPressHandler") {
-            //if confirm dialog has appeared for confirm saving change
-            //going back
-            setBackbuttonPress(true);
-            handleSaveNoteClick();
-        }
-    }
-
     //function to handle when save btn is clicked on
-    async function handleSaveNoteClick(action) {
-        if (!showIndicator) {
+    async function handleSaveNoteClick(byPassIndicatorStatus) {
+        if (!showIndicator || byPassIndicatorStatus) {
             //checking is some change has been done in notes data or not
             const hasChanged = await checkIfNotesDataIsChanged();
             if (hasChanged === false) {
                 //no any change has occured
-                //checking if saving using shortcut key
-                if (action === "shortcutKey") {
-                    makeSnackBar("Nothing to save", "info");
-                } else {
-                    //redirecting back to user's home page
-                    // props.history.goBack();
-                    setRedirectToUserHome(true);
-                    return;
-                }
+                //redirecting back to user's home page
+                Actions.pop();
+                return;
             } else {
                 //some changes has occured
                 try {
@@ -308,10 +272,10 @@ export default function ViewNotes({
                     //sending rqst to api
                     if (notesDataDb || notesListDataDb) {
                         setShowIndicator(true);
-                        updateANotesListData(notesDataDb, notesListDataDb, action);
+                        updateANotesListData(notesDataDb, notesListDataDb);
                     }
                 } catch {
-                    makeSnackBar("Something went wrong");
+                    toast("Something went wrong");
                 }
             }
         }
@@ -366,33 +330,22 @@ export default function ViewNotes({
     }
 
     //function to handle update notes list data
-    async function updateANotesListData(notesDataDb, notesListDataDb, action) {
+    async function updateANotesListData(notesDataDb, notesListDataDb) {
         //sending rqst to api
         const response = await updateNotesListData(
-            getCookieValue("loggedUserToken"),
+            loggedUserToken,
             encryptedNotesId,
             JSON.stringify(notesDataDb),
             JSON.stringify(notesListDataDb),
         );
         if (response.statusCode === 200) {
-            //checking if saving using shortcut key
-            if (action === "shortcutKey") {
-                setTimeout(function() {
-                    window.location.reload();
-                }, 500);
-            } else {
-                //going back to user's home page after .7s
-                //so that success toast can be visible for some time
-                setTimeout(function() {
-                    // props.history.goBack();
-                    setRedirectToUserHome(true);
-                    return;
-                }, 700);
-            }
+            Actions.pop();
+            return;
         } else {
-            makeSnackBar(response.msg);
-            setShowIndicator(false);
+            toast(response.msg);
         }
+
+        setShowIndicator(false);
     }
 
     function renderPageContent() {
@@ -447,7 +400,6 @@ export default function ViewNotes({
                     <View style={globalStyles.formContainer_scroll}>
                         <ScrollView style={globalStyles.listNotesFieldContainer}>
                             {
-                                // console.log("notesListData", notesListData);
                                 notesListData.map((item, idx) => (
                                     <NotesListDataItem
                                         key={idx}
@@ -472,7 +424,6 @@ export default function ViewNotes({
         )
     }
 
-    //rendering
     return (
         <View style={globalStyles.container}>
             {

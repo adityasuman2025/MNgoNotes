@@ -206,22 +206,18 @@ export const globalStyles = StyleSheet.create({
         margin: 0,
         paddingHorizontal: 7,
         color: '#d8d8d8',
-        fontSize: 17,
-
-        // backgroundColor: 'blue',
+        fontSize: 15,
     },
 
-    notesListInput_normal:
-    {
-        width: "89%",
-
+    notesListInput_normal: {
+        width: "90%",
         padding: 0,
         margin: 0,
         paddingHorizontal: 7,
         color: '#d8d8d8',
-        fontSize: 17,
+        fontSize: 15,
 
-        // backgroundColor: 'yellow',
+        backgroundColor: "red",
     },
 
     notesListInput_checked:
@@ -232,11 +228,9 @@ export const globalStyles = StyleSheet.create({
         margin: 0,
         paddingHorizontal: 7,
         color: '#d8d8d8',
-        fontSize: 17,
+        fontSize: 15,
         textDecorationLine: 'line-through',
         textDecorationStyle: 'solid',
-
-        // backgroundColor: 'red',
     },
 
     notesFieldCloseImg:
@@ -254,7 +248,5 @@ export const globalStyles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         marginBottom: 50,
-        // marginTop: 10,
-        // paddingBottom: 50,
     },
 });
