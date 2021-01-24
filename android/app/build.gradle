@@ -129,7 +129,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.mngo_notes_web"
+        applicationId "in.mngo.notes"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
