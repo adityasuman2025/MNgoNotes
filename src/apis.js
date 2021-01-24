@@ -13,7 +13,7 @@ export async function VerifyLogin(username, password) {
         const data = (response.data);
         return data;
     } catch {
-        return { msg: "API Connection Failed" };
+        return { statusCode: 600, msg: "API Connection Failed" };
     }
 }
 
@@ -28,7 +28,7 @@ export async function VerifyPassCode(logged_user_token, passcode) {
         const data = (response.data);
         return data;
     } catch {
-        return { msg: "API Connection Failed" };
+        return { statusCode: 600, msg: "API Connection Failed" };
     }
 }
 
@@ -47,7 +47,7 @@ export async function registerNewUser(username, name, email, password, passcode)
         const data = (response.data);
         return data;
     } catch {
-        return { msg: "API Connection Failed" };
+        return { statusCode: 600, msg: "API Connection Failed" };
     }
 }
 
@@ -76,7 +76,7 @@ export async function getListDataOfANote(logged_user_token, encrypted_notes_id) 
         const data = (response.data);
         return data;
     } catch {
-        return { msg: "API Connection Failed" };
+        return { statusCode: 600, msg: "API Connection Failed" };
     }
 }
 
@@ -91,7 +91,7 @@ export async function deleteNotesListDataItem(logged_user_token, note_list_id) {
         const data = (response.data);
         return data;
     } catch {
-        return { msg: "API Connection Failed" };
+        return { statusCode: 600, msg: "API Connection Failed" };
     }
 }
 
@@ -106,7 +106,7 @@ export async function deleteANote(logged_user_token, encrypted_notes_id) {
         const data = (response.data);
         return data;
     } catch {
-        return { msg: "API Connection Failed" };
+        return { statusCode: 600, msg: "API Connection Failed" };
     }
 }
 
@@ -123,7 +123,7 @@ export async function updateNotesListData(logged_user_token, encrypted_notes_id,
         const data = (response.data);
         return data;
     } catch {
-        return { msg: "API Connection Failed" };
+        return { statusCode: 600, msg: "API Connection Failed" };
     }
 }
 
@@ -139,6 +139,6 @@ export async function addUserNotes(logged_user_token, notesData, notesList) {
         const data = (response.data);
         return data;
     } catch {
-        return { msg: "API Connection Failed" };
+        return { statusCode: 600, msg: "API Connection Failed" };
     }
 }

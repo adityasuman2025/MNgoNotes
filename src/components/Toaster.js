@@ -12,4 +12,4 @@ const toast = (msg: string) => {
     }
 }
 
-export { toast };
+export default toast;

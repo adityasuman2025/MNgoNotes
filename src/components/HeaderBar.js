@@ -3,10 +3,12 @@ import { StyleSheet, Text, View, Image, TouchableOpacity, Alert } from 'react-na
 
 import { logOut } from "../utils";
 
-export default function Header({ toCarry }) {
-	const title = toCarry.title;
-
-	//onc clicking on logout btn
+export default function HeaderBar({
+	toCarry: {
+		title,
+	} = {}
+}) {
+	//on clicking on logout btn
 	const logOutHandler = () => {
 		Alert.alert("Logout", "Are you sure to logout?", [
 			{ text: "Yes", onPress: () => logOut() },

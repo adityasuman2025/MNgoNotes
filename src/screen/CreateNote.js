@@ -3,7 +3,7 @@ import { Text, View, Image, TouchableOpacity, ScrollView, TextInput, ActivityInd
 import { Picker } from '@react-native-picker/picker';
 import { Actions } from 'react-native-router-flux';
 import NotesListDataItem from "../components/NotesListDataItem";
-import { toast } from '../components/Toast';
+import toast from '../components/Toaster';
 
 import { addUserNotes } from "../apis";
 import { getCookieValue } from '../utils';

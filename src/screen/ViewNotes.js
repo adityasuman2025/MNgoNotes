@@ -3,9 +3,9 @@ import { Text, View, Image, TouchableOpacity, ScrollView, Alert, TextInput, Acti
 import { Actions } from 'react-native-router-flux';
 
 import { getListDataOfANote, deleteNotesListDataItem, deleteANote, updateNotesListData } from "../apis";
-import { getCookieValue } from '../utils';
+import { getCookieValue, makeCookie } from '../utils';
 import NotesListDataItem from "../components/NotesListDataItem";
-import { toast } from '../components/Toast';
+import toast from '../components/Toaster';
 
 import { globalStyles } from '../styles/globalStyles';
 
@@ -60,20 +60,43 @@ export default function ViewNotes({
         if (response.statusCode === 200) {
             const data = response.data;
             if (data) {
-                const title = data.title;
-                const type = data.type;
-                const notesList = data.notes_list || [];
-                setNotesData({
-                    "title": title,
-                    "hasChanged": false,
-                });
-                setNotesType(parseInt(type));
-                setNotesListData(notesList);
+                const noteListDataOf = "note_" + encryptedNotesId + "Of_" + loggedUserToken;
+                const noteListDataCookie = await makeCookie(noteListDataOf, JSON.stringify(data));
+                if (noteListDataCookie) {
+                    await loadNoteListDataFromCookies(loggedUserToken, encryptedNotesId);
+                } else {
+                    toast("Something went wrong");
+                }
             } else {
                 toast("Something went wrong");
             }
+        } else if (response.statusCode === 600) {
+            //no internet connection / API DNE
+            await loadNoteListDataFromCookies(loggedUserToken, encryptedNotesId);
         } else {
             toast(response.msg);
+        }
+
+        setShowIndicator(false);
+    }
+
+    async function loadNoteListDataFromCookies(loggedUserToken, encryptedNotesId) {
+        const noteListDataOf = "note_" + encryptedNotesId + "Of_" + loggedUserToken;
+        const noteListDataCookie = await getCookieValue(noteListDataOf);
+        if (noteListDataCookie) {
+            const data = JSON.parse(noteListDataCookie);
+
+            const title = data.title;
+            const type = data.type;
+            const notesList = data.notes_list || [];
+            setNotesData({
+                "title": title,
+                "hasChanged": false,
+            });
+            setNotesType(parseInt(type));
+            setNotesListData(notesList);
+        } else {
+            toast("No internet connection");
         }
 
         setShowIndicator(false);
@@ -255,6 +278,8 @@ export default function ViewNotes({
 
     //function to handle when save btn is clicked on
     async function handleSaveNoteClick(byPassIndicatorStatus) {
+        if (typeof (byPassIndicatorStatus) === 'object') byPassIndicatorStatus = false; // when byPassIndicatorStatus is not passed in this function then byPassIndicatorStatus is coming as object so making it false
+
         if (!showIndicator || byPassIndicatorStatus) {
             //checking is some change has been done in notes data or not
             const hasChanged = await checkIfNotesDataIsChanged();
@@ -273,7 +298,7 @@ export default function ViewNotes({
                     //sending rqst to api
                     if (notesDataDb || notesListDataDb) {
                         setShowIndicator(true);
-                        updateANotesListData(notesDataDb, notesListDataDb);
+                        updateANotesListData(notesDataDb, notesListDataDb, byPassIndicatorStatus);
                     }
                 } catch {
                     toast("Something went wrong");
@@ -331,7 +356,7 @@ export default function ViewNotes({
     }
 
     //function to handle update notes list data
-    async function updateANotesListData(notesDataDb, notesListDataDb) {
+    async function updateANotesListData(notesDataDb, notesListDataDb, byPassIndicatorStatus) {
         //sending rqst to api
         const response = await updateNotesListData(
             loggedUserToken,
@@ -349,7 +374,14 @@ export default function ViewNotes({
             Actions.pop();
             return;
         } else {
-            toast(response.msg);
+            if (byPassIndicatorStatus) {
+                //if reaching here from back btn
+                //then going back without displaying any error
+                Actions.pop();
+                return;
+            } else {
+                toast(response.msg);
+            }
         }
 
         setShowIndicator(false);

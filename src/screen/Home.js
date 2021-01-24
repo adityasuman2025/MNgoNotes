@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, FlatList, Image, ActivityIndicator } from 'react-native';
 
-import Header from '../components/Header';
+import Header from '../components/HeaderBar';
 import { getCookieValue, makeCookie, redirectToCreateNoteScreen, redirectToViewNotesScreen } from '../utils';
 import { getUserNotes } from "../apis";
-import { toast } from '../components/Toast';
+import toast from '../components/Toaster';
 
 import { globalStyles } from '../styles/globalStyles';
 
@@ -59,7 +59,7 @@ export default function Home() {
         if (notesCookie) {
             setNotes(JSON.parse(notesCookie));
         } else {
-            toast("Something went wrong");
+            toast("No internet connection");
         }
 
         setShowIndicator(false);
