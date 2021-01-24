@@ -36,7 +36,7 @@ export default function CreateNote({
     function backBtnPressed() {
         console.log("back btn pressed in create notes screen");
 
-        handleSaveNoteClick("backBtn"); //creating new notes
+        handleSaveNoteClick(true); //creating new notes
         return true; //prevents the original back action
     }
 
@@ -171,7 +171,9 @@ export default function CreateNote({
     }
 
     //function yo handle when save btn is clicked on
-    async function handleSaveNoteClick(action) {
+    async function handleSaveNoteClick(comingThroughBackBtn) {
+        if (typeof (comingThroughBackBtn) === 'object') comingThroughBackBtn = false; // when comingThroughBackBtn is not passed in this function then by default it is coming as object so making it false
+
         if (!showIndicator) {
             const title = notesData.title;
             const type = notesData.type;
@@ -192,16 +194,23 @@ export default function CreateNote({
                     goBack();
                 } else {
                     toast(response.msg);
-                    setShowIndicator(false);
+
+                    if (comingThroughBackBtn) {
+                        //if reaching here from back btn
+                        goBack();
+                    }
                 }
             } else {
-                if (action === "backBtn") {
+                if (comingThroughBackBtn) {
+                    //if reaching here from back btn
                     goBack();
                 } else {
                     toast("Title or Type can't be empty");
                 }
             }
         }
+
+        setShowIndicator(false);
     }
 
     function renderPageContent() {
@@ -226,6 +235,7 @@ export default function CreateNote({
                             selectionColor="#1c313a"
                             keyboardType="name-phone-pad"
                             autoCapitalize="words"
+                            value={notesData.title}
                             onChangeText={(val) => setNotesData({
                                 ...notesData,
                                 title: val

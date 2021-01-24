@@ -85,7 +85,6 @@ export default function ViewNotes({
         const noteListDataCookie = await getCookieValue(noteListDataOf);
         if (noteListDataCookie) {
             const data = JSON.parse(noteListDataCookie);
-            console.log("cookie data", data);
 
             const title = data.title;
             const type = data.type;
@@ -278,7 +277,7 @@ export default function ViewNotes({
 
     //function to handle when save btn is clicked on
     async function handleSaveNoteClick(comingThroughBackBtn) {
-        if (typeof (comingThroughBackBtn) === 'object') comingThroughBackBtn = false; // when byPassIndicatorStatus is not passed in this function then byPassIndicatorStatus is coming as object so making it false
+        if (typeof (comingThroughBackBtn) === 'object') comingThroughBackBtn = false; // when comingThroughBackBtn is not passed in this function then by default it is coming as object so making it false
 
         if (!showIndicator || comingThroughBackBtn) {
             //checking is some change has been done in notes data or not
