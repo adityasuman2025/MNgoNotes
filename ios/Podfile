@@ -44,8 +44,8 @@ def flipper_post_install(installer)
   end
 end
 
-target 'mngo_notes_web' do
-  # Pods for mngo_notes_web
+target 'MNgoNotes' do
+  # Pods for MNgoNotes
   pod 'FBLazyVector', :path => "../node_modules/react-native/Libraries/FBLazyVector"
   pod 'FBReactNativeSpec', :path => "../node_modules/react-native/Libraries/FBReactNativeSpec"
   pod 'RCTRequired', :path => "../node_modules/react-native/Libraries/RCTRequired"
@@ -77,7 +77,7 @@ target 'mngo_notes_web' do
   pod 'glog', :podspec => '../node_modules/react-native/third-party-podspecs/glog.podspec'
   pod 'Folly', :podspec => '../node_modules/react-native/third-party-podspecs/Folly.podspec'
 
-  target 'mngo_notes_webTests' do
+  target 'MNgoNotesTests' do
     inherit! :complete
     # Pods for testing
   end
@@ -94,10 +94,10 @@ target 'mngo_notes_web' do
   end
 end
 
-target 'mngo_notes_web-tvOS' do
-  # Pods for mngo_notes_web-tvOS
+target 'MNgoNotes-tvOS' do
+  # Pods for MNgoNotes-tvOS
 
-  target 'mngo_notes_web-tvOSTests' do
+  target 'MNgoNotes-tvOSTests' do
     inherit! :search_paths
     # Pods for testing
   end

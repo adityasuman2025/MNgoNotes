@@ -7,11 +7,11 @@
 #define TIMEOUT_SECONDS 600
 #define TEXT_TO_LOOK_FOR @"Welcome to React"
 
-@interface mngo_notes_webTests : XCTestCase
+@interface MNgoNotesTests : XCTestCase
 
 @end
 
-@implementation mngo_notes_webTests
+@implementation MNgoNotesTests
 
 - (BOOL)findSubviewInView:(UIView *)view matching:(BOOL(^)(UIView *view))test
 {
