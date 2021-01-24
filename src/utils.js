@@ -52,6 +52,11 @@ export function redirectToViewNotesScreen(payload) {
     Actions.viewNotesScreen(payload);
 }
 
+export function goBack() {
+    Actions.pop();
+    return;
+}
+
 //function to validate name, contact no and email
 export function validateUsername(name) {
     var re = /^[a-zA-Z0-9_]*$/;

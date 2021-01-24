@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Text, View, Image, TouchableOpacity, ScrollView, Alert, TextInput, ActivityIndicator, BackHandler } from 'react-native';
-import { Actions } from 'react-native-router-flux';
 
 import { getListDataOfANote, deleteNotesListDataItem, deleteANote, updateNotesListData } from "../apis";
-import { getCookieValue, makeCookie } from '../utils';
+import { getCookieValue, makeCookie, goBack } from '../utils';
 import NotesListDataItem from "../components/NotesListDataItem";
 import toast from '../components/Toaster';
 
@@ -85,6 +84,7 @@ export default function ViewNotes({
         const noteListDataCookie = await getCookieValue(noteListDataOf);
         if (noteListDataCookie) {
             const data = JSON.parse(noteListDataCookie);
+            console.log("cookie data", data);
 
             const title = data.title;
             const type = data.type;
@@ -267,8 +267,7 @@ export default function ViewNotes({
         const response = await deleteANote(loggedUserToken, encryptedNotesId);
         if (response.statusCode === 200) {
             refreshList();
-            Actions.pop();
-            return;
+            goBack();
         } else {
             toast(response.msg);
         }
@@ -277,18 +276,20 @@ export default function ViewNotes({
     }
 
     //function to handle when save btn is clicked on
-    async function handleSaveNoteClick(byPassIndicatorStatus) {
-        if (typeof (byPassIndicatorStatus) === 'object') byPassIndicatorStatus = false; // when byPassIndicatorStatus is not passed in this function then byPassIndicatorStatus is coming as object so making it false
+    async function handleSaveNoteClick(comingThroughBackBtn) {
+        if (typeof (comingThroughBackBtn) === 'object') comingThroughBackBtn = false; // when byPassIndicatorStatus is not passed in this function then byPassIndicatorStatus is coming as object so making it false
 
-        if (!showIndicator || byPassIndicatorStatus) {
+        if (!showIndicator || comingThroughBackBtn) {
             //checking is some change has been done in notes data or not
             const hasChanged = await checkIfNotesDataIsChanged();
             if (hasChanged === false) {
-                console.log("no change occured")
                 //no any change has occured
-                //redirecting back to user's home page
-                Actions.pop();
-                return;
+                if (comingThroughBackBtn) {
+                    //if reaching here from back btn
+                    goBack();
+                } else {
+                    toast("Nothing to save");
+                }
             } else {
                 //some changes has occured
                 try {
@@ -298,7 +299,7 @@ export default function ViewNotes({
                     //sending rqst to api
                     if (notesDataDb || notesListDataDb) {
                         setShowIndicator(true);
-                        updateANotesListData(notesDataDb, notesListDataDb, byPassIndicatorStatus);
+                        updateANotesListData(notesDataDb, notesListDataDb, comingThroughBackBtn);
                     }
                 } catch {
                     toast("Something went wrong");
@@ -356,7 +357,7 @@ export default function ViewNotes({
     }
 
     //function to handle update notes list data
-    async function updateANotesListData(notesDataDb, notesListDataDb, byPassIndicatorStatus) {
+    async function updateANotesListData(notesDataDb, notesListDataDb, comingThroughBackBtn) {
         //sending rqst to api
         const response = await updateNotesListData(
             loggedUserToken,
@@ -365,20 +366,23 @@ export default function ViewNotes({
             JSON.stringify(notesListDataDb),
         );
         if (response.statusCode === 200) {
+            toast("Saved");
+            await fetchNotesListData(loggedUserToken, encryptedNotesId);
             if (notesDataDb !== 0) {
                 //note title has changed
                 //so updating the notes list in home screen
                 refreshList();
             }
 
-            Actions.pop();
-            return;
+            if (comingThroughBackBtn) {
+                //if reaching here from back btn
+                goBack();
+            }
         } else {
-            if (byPassIndicatorStatus) {
+            if (comingThroughBackBtn) {
                 //if reaching here from back btn
                 //then going back without displaying any error
-                Actions.pop();
-                return;
+                goBack();
             } else {
                 toast(response.msg);
             }

@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Text, View, Image, TouchableOpacity, ScrollView, TextInput, ActivityIndicator, BackHandler } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import { Actions } from 'react-native-router-flux';
 import NotesListDataItem from "../components/NotesListDataItem";
 import toast from '../components/Toaster';
 
 import { addUserNotes } from "../apis";
-import { getCookieValue } from '../utils';
+import { getCookieValue, goBack } from '../utils';
 
 import { globalStyles } from '../styles/globalStyles';
 
@@ -187,19 +186,17 @@ export default function CreateNote({
                     JSON.stringify(notesListData),
                 );
                 if (response.statusCode === 200) {
-                    toast("Saved", "success");
+                    toast("Saved");
 
                     refreshList();
-                    Actions.pop();
-                    return;
+                    goBack();
                 } else {
                     toast(response.msg);
                     setShowIndicator(false);
                 }
             } else {
                 if (action === "backBtn") {
-                    Actions.pop();
-                    return;
+                    goBack();
                 } else {
                     toast("Title or Type can't be empty");
                 }
