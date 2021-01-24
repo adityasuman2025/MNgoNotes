@@ -5,6 +5,7 @@ import Header from '../components/HeaderBar';
 import { getCookieValue, makeCookie, redirectToCreateNoteScreen, redirectToViewNotesScreen } from '../utils';
 import { getUserNotes } from "../apis";
 import toast from '../components/Toaster';
+import { NO_INTERNET_ERROR } from "../constants";
 
 import { globalStyles } from '../styles/globalStyles';
 
@@ -59,7 +60,7 @@ export default function Home() {
         if (notesCookie) {
             setNotes(JSON.parse(notesCookie));
         } else {
-            toast("No internet connection");
+            toast(NO_INTERNET_ERROR);
         }
 
         setShowIndicator(false);

@@ -5,6 +5,7 @@ import { getListDataOfANote, deleteNotesListDataItem, deleteANote, updateNotesLi
 import { getCookieValue, makeCookie, goBack } from '../utils';
 import NotesListDataItem from "../components/NotesListDataItem";
 import toast from '../components/Toaster';
+import { NO_INTERNET_ERROR } from "../constants";
 
 import { globalStyles } from '../styles/globalStyles';
 
@@ -96,7 +97,7 @@ export default function ViewNotes({
             setNotesType(parseInt(type));
             setNotesListData(notesList);
         } else {
-            toast("No internet connection");
+            toast(NO_INTERNET_ERROR);
         }
 
         setShowIndicator(false);
@@ -379,12 +380,11 @@ export default function ViewNotes({
                 goBack();
             }
         } else {
+            toast(response.msg);
             if (comingThroughBackBtn) {
                 //if reaching here from back btn
                 //then going back without displaying any error
                 goBack();
-            } else {
-                toast(response.msg);
             }
         }
 
